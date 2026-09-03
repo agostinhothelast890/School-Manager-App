@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smartbits — Teste de Login</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #F6F3EA; color: #1D2430; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+  .card { background: #fff; border: 1px solid #D9D1BA; border-radius: 12px; padding: 34px; max-width: 380px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+  h1 { font-size: 18px; margin-bottom: 6px; color: #153357; }
+  p { font-size: 13px; color: #7C7561; margin-bottom: 24px; }
+  button { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; }
+  .btn-google { background: #153357; color: #fff; }
+  .btn-logout { background: #F6F3EA; color: #1D2430; border: 1px solid #D9D1BA; margin-top: 14px; }
+  .status { background: #E4EFEA; color: #2E6E5E; border-radius: 8px; padding: 12px 14px; font-size: 13px; margin-bottom: 16px; word-break: break-all; }
+  .error { background: #F5E2E1; color: #9E3A3F; }
+  #app { display: none; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Smartbits — Teste de Login</h1>
+    <p>Página de teste para confirmar que o login com Google está ligado ao Supabase.</p>
+
+    <div id="logged-out">
+      <button class="btn-google" id="login-btn">Entrar com Google</button>
+    </div>
+
+    <div id="logged-in" style="display:none;">
+      <div class="status" id="user-info"></div>
+      <button class="btn-logout" id="logout-btn">Sair</button>
+    </div>
+
+    <div id="error-box" class="status error" style="display:none;"></div>
+  </div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+  const SUPABASE_URL = 'https://jmpyzwsffbmbjxxfqecg.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_hyQ83RqiogAVPl6-Wyc07g_RP8lzDs-';
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const loggedOutEl = document.getElementById('logged-out');
+  const loggedInEl = document.getElementById('logged-in');
+  const userInfoEl = document.getElementById('user-info');
+  const errorBoxEl = document.getElementById('error-box');
+
+  function showError(msg) {
+    errorBoxEl.style.display = 'block';
+    errorBoxEl.textContent = msg;
+  }
+
+  function renderUser(user) {
+    if (user) {
+      loggedOutEl.style.display = 'none';
+      loggedInEl.style.display = 'block';
+      userInfoEl.textContent = 'Sessão iniciada como: ' + user.email;
+    } else {
+      loggedOutEl.style.display = 'block';
+      loggedInEl.style.display = 'none';
+    }
+  }
+
+  // Check current session on load (handles the redirect back from Google)
+  supabase.auth.getSession().then(({ data, error }) => {
+    if (error) showError('Erro ao obter sessão: ' + error.message);
+    renderUser(data?.session?.user ?? null);
+  });
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    renderUser(session?.user ?? null);
+  });
+
+  document.getElementById('login-btn').addEventListener('click', async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + window.location.pathname }
+    });
+    if (error) showError('Erro ao iniciar login: ' + error.message);
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    renderUser(null);
+  });
+</script>
+</body>
+</html>
