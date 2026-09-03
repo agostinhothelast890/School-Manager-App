@@ -29,6 +29,19 @@
     <div id="logged-in" style="display:none;">
       <div class="status" id="user-info"></div>
       <button class="btn-logout" id="logout-btn">Sair</button>
+
+      <hr style="border:none;border-top:1px solid #D9D1BA;margin:22px 0;">
+      <div style="text-align:left;">
+        <p style="font-size:12px;color:#7C7561;margin-bottom:10px;">Pedir para entrar numa conta existente (teste da função signup-request)</p>
+        <label style="font-size:11px;color:#7C7561;display:block;margin-bottom:4px;">Email do admin da conta</label>
+        <input id="admin-email-input" type="email" placeholder="admin@exemplo.com"
+          style="width:100%;padding:8px;border:1px solid #D9D1BA;border-radius:6px;margin-bottom:10px;box-sizing:border-box;font-size:13px;" />
+        <label style="font-size:11px;color:#7C7561;display:block;margin-bottom:4px;">Nome deste aparelho</label>
+        <input id="device-name-input" type="text" placeholder="Ex: Portátil da Direção"
+          style="width:100%;padding:8px;border:1px solid #D9D1BA;border-radius:6px;margin-bottom:12px;box-sizing:border-box;font-size:13px;" />
+        <button id="request-btn" class="btn-google" style="width:100%;justify-content:center;">Pedir para entrar</button>
+        <div id="request-result" style="margin-top:10px;font-size:12px;"></div>
+      </div>
     </div>
 
     <div id="error-box" class="status error" style="display:none;"></div>
@@ -84,6 +97,29 @@
   document.getElementById('logout-btn').addEventListener('click', async () => {
     await supabase.auth.signOut();
     renderUser(null);
+  });
+
+  document.getElementById('request-btn').addEventListener('click', async () => {
+    const admin_email = document.getElementById('admin-email-input').value.trim();
+    const device_name = document.getElementById('device-name-input').value.trim();
+    const resultEl = document.getElementById('request-result');
+    resultEl.style.color = '#7C7561';
+    resultEl.textContent = 'A enviar...';
+
+    const { data, error } = await supabase.functions.invoke('signup-request', {
+      body: { admin_email, device_name }
+    });
+
+    if (error) {
+      resultEl.style.color = '#9E3A3F';
+      resultEl.textContent = 'Erro: ' + error.message;
+    } else if (data?.error) {
+      resultEl.style.color = '#9E3A3F';
+      resultEl.textContent = 'Erro: ' + data.error;
+    } else {
+      resultEl.style.color = '#2E6E5E';
+      resultEl.textContent = 'Pedido enviado! Estado: ' + data.status + ' (device_id: ' + data.device_id + ')';
+    }
   });
 </script>
 </body>
