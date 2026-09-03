@@ -36,6 +36,17 @@
 
       <hr style="border:none;border-top:1px solid #D9D1BA;margin:22px 0;">
       <div style="text-align:left;">
+        <p style="font-size:12px;color:#7C7561;margin-bottom:10px;">Criar nova conta (Login — teste da função create-account)</p>
+        <label class="field-label">Nome da conta/escola</label>
+        <input id="account-name-input" type="text" class="field-input" placeholder="Ex: Smartbits" />
+        <label class="field-label">Nome deste aparelho</label>
+        <input id="create-device-name-input" type="text" class="field-input" placeholder="Ex: Computador principal" />
+        <button id="create-account-btn" class="btn-google" style="width:100%;justify-content:center;">Criar conta</button>
+        <div id="create-account-result" style="margin-top:10px;font-size:12px;"></div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid #D9D1BA;margin:22px 0;">
+      <div style="text-align:left;">
         <p style="font-size:12px;color:#7C7561;margin-bottom:10px;">Pedir para entrar numa conta existente (teste da função signup-request)</p>
         <label style="font-size:11px;color:#7C7561;display:block;margin-bottom:4px;">Email do admin da conta</label>
         <input id="admin-email-input" type="email" placeholder="admin@exemplo.com"
@@ -118,6 +129,29 @@
   document.getElementById('logout-btn').addEventListener('click', async () => {
     await supabase.auth.signOut();
     renderUser(null);
+  });
+
+  document.getElementById('create-account-btn').addEventListener('click', async () => {
+    const account_name = document.getElementById('account-name-input').value.trim();
+    const device_name = document.getElementById('create-device-name-input').value.trim();
+    const resultEl = document.getElementById('create-account-result');
+    resultEl.style.color = '#7C7561';
+    resultEl.textContent = 'A criar...';
+
+    const { data, error } = await supabase.functions.invoke('create-account', {
+      body: { account_name, device_name }
+    });
+
+    if (error) {
+      resultEl.style.color = '#9E3A3F';
+      resultEl.textContent = 'Erro: ' + error.message;
+    } else if (data?.error) {
+      resultEl.style.color = '#9E3A3F';
+      resultEl.textContent = 'Erro: ' + data.error;
+    } else {
+      resultEl.style.color = '#2E6E5E';
+      resultEl.textContent = 'Conta criada! account_id: ' + data.account_id + ' — este aparelho já está aprovado.';
+    }
   });
 
   document.getElementById('request-btn').addEventListener('click', async () => {
