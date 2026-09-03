@@ -6,7 +6,11 @@
 <title>Smartbits — Teste de Login</title>
 <style>
   body { font-family: system-ui, sans-serif; background: #F6F3EA; color: #1D2430; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-  .card { background: #fff; border: 1px solid #D9D1BA; border-radius: 12px; padding: 34px; max-width: 380px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+  .card { background: #fff; border: 1px solid #D9D1BA; border-radius: 12px; padding: 34px; max-width: 440px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+  .field-label { font-size: 11px; color: #7C7561; display: block; margin-bottom: 4px; }
+  .field-input { width: 100%; padding: 8px; border: 1px solid #D9D1BA; border-radius: 6px; margin-bottom: 10px; box-sizing: border-box; font-size: 13px; }
+  .device-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #EAE3D0; font-size: 12px; text-align: left; }
+  .btn-small { font-size: 11px; padding: 5px 10px; background: #E08A2E; color: #fff; }
   h1 { font-size: 18px; margin-bottom: 6px; color: #153357; }
   p { font-size: 13px; color: #7C7561; margin-bottom: 24px; }
   button { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; }
@@ -42,6 +46,22 @@
         <button id="request-btn" class="btn-google" style="width:100%;justify-content:center;">Pedir para entrar</button>
         <div id="request-result" style="margin-top:10px;font-size:12px;"></div>
       </div>
+
+      <div id="verify-section" style="display:none; text-align:left; margin-top:18px;">
+        <hr style="border:none;border-top:1px solid #D9D1BA;margin:18px 0;">
+        <p style="font-size:12px;color:#7C7561;margin-bottom:10px;">Já tens um código do admin? Introduz aqui</p>
+        <label class="field-label">Código (ex: 123-456)</label>
+        <input id="code-input" type="text" class="field-input" placeholder="000-000" />
+        <button id="verify-btn" class="btn-google" style="width:100%;justify-content:center;">Confirmar código</button>
+        <div id="verify-result" style="margin-top:10px;font-size:12px;"></div>
+      </div>
+
+      <div style="text-align:left; margin-top:18px;">
+        <hr style="border:none;border-top:1px solid #D9D1BA;margin:18px 0;">
+        <p style="font-size:12px;color:#7C7561;margin-bottom:10px;">Painel admin (teste) — pedidos pendentes</p>
+        <button id="list-pending-btn" class="btn-logout" style="width:100%;justify-content:center;">Ver pedidos pendentes</button>
+        <div id="pending-list" style="margin-top:10px;"></div>
+      </div>
     </div>
 
     <div id="error-box" class="status error" style="display:none;"></div>
@@ -54,6 +74,7 @@
   const SUPABASE_ANON_KEY = 'sb_publishable_hyQ83RqiogAVPl6-Wyc07g_RP8lzDs-';
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let currentDeviceId = null;
 
   const loggedOutEl = document.getElementById('logged-out');
   const loggedInEl = document.getElementById('logged-in');
@@ -119,7 +140,77 @@
     } else {
       resultEl.style.color = '#2E6E5E';
       resultEl.textContent = 'Pedido enviado! Estado: ' + data.status + ' (device_id: ' + data.device_id + ')';
+      currentDeviceId = data.device_id;
+      document.getElementById('verify-section').style.display = 'block';
     }
+  });
+
+  document.getElementById('verify-btn').addEventListener('click', async () => {
+    const code = document.getElementById('code-input').value.trim();
+    const resultEl = document.getElementById('verify-result');
+    if (!currentDeviceId) {
+      resultEl.style.color = '#9E3A3F';
+      resultEl.textContent = 'Faz primeiro um "Pedir para entrar" acima, para teres um device_id.';
+      return;
+    }
+    resultEl.style.color = '#7C7561';
+    resultEl.textContent = 'A verificar...';
+
+    const { data, error } = await supabase.functions.invoke('verify-device-code', {
+      body: { device_id: currentDeviceId, code }
+    });
+
+    if (error) {
+      resultEl.style.color = '#9E3A3F';
+      resultEl.textContent = 'Erro: ' + error.message;
+    } else if (data?.error) {
+      resultEl.style.color = '#9E3A3F';
+      resultEl.textContent = 'Erro: ' + data.error;
+    } else {
+      resultEl.style.color = '#2E6E5E';
+      resultEl.textContent = 'Estado: ' + data.status + ' — aparelho aprovado!';
+    }
+  });
+
+  document.getElementById('list-pending-btn').addEventListener('click', async () => {
+    const listEl = document.getElementById('pending-list');
+    listEl.textContent = 'A carregar...';
+    const { data, error } = await supabase
+      .from('devices')
+      .select('id, device_name, user_id, status, created_at')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      listEl.textContent = 'Erro: ' + error.message;
+      return;
+    }
+    if (!data || data.length === 0) {
+      listEl.textContent = 'Nenhum pedido pendente (ou não és admin de nenhuma conta).';
+      return;
+    }
+    listEl.innerHTML = '';
+    data.forEach((d) => {
+      const row = document.createElement('div');
+      row.className = 'device-row';
+      row.innerHTML = `<span>${d.device_name}</span>`;
+      const btn = document.createElement('button');
+      btn.className = 'btn-small';
+      btn.textContent = 'Aprovar';
+      btn.addEventListener('click', async () => {
+        btn.textContent = '...';
+        const { data: approveData, error: approveError } = await supabase.functions.invoke('approve-device', {
+          body: { device_id: d.id }
+        });
+        if (approveError || approveData?.error) {
+          row.innerHTML += `<span style="color:#9E3A3F;">${(approveError && approveError.message) || approveData.error}</span>`;
+        } else {
+          row.innerHTML = `<span>${d.device_name}</span><strong style="color:#2E6E5E;">Código: ${approveData.code}</strong>`;
+        }
+      });
+      row.appendChild(btn);
+      listEl.appendChild(row);
+    });
   });
 </script>
 </body>
