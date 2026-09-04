@@ -73,6 +73,16 @@
         <button id="list-pending-btn" class="btn-logout" style="width:100%;justify-content:center;">View devices</button>
         <div id="pending-list" style="margin-top:10px;"></div>
       </div>
+      <div style="text-align:left; margin-top:18px;">
+        <hr style="border:none;border-top:1px solid #D9D1BA;margin:18px 0;">
+        <p style="font-size:12px;color:#7C7561;margin-bottom:10px;">Admin panel (test) — allowed emails</p>
+        <button id="view-allowed-btn" class="btn-logout" style="width:100%;justify-content:center;">View allowed emails</button>
+        <div id="allowed-list" style="margin-top:10px;"></div>
+        <label class="field-label" style="margin-top:12px;">Add email to allow-list</label>
+        <input id="new-allowed-email-input" type="email" class="field-input" placeholder="name@example.com" />
+        <button id="add-allowed-btn" class="btn-google" style="width:100%;justify-content:center;">Add</button>
+        <div id="add-allowed-result" style="margin-top:10px;font-size:12px;"></div>
+      </div>
     </div>
 
     <div id="error-box" class="status error" style="display:none;"></div>
@@ -273,6 +283,84 @@
       }
       listEl.appendChild(row);
     });
+  });
+
+  let myAdminAccountId = null;
+  async function ensureAdminAccountId() {
+    if (myAdminAccountId) return myAdminAccountId;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    const { data } = await supabase
+      .from('account_members')
+      .select('account_id, role')
+      .eq('user_id', user.id)
+      .in('role', ['admin', 'co_admin'])
+      .limit(1)
+      .maybeSingle();
+    myAdminAccountId = data?.account_id ?? null;
+    return myAdminAccountId;
+  }
+
+  document.getElementById('view-allowed-btn').addEventListener('click', async () => {
+    const listEl = document.getElementById('allowed-list');
+    listEl.textContent = 'Loading...';
+    const accountId = await ensureAdminAccountId();
+    if (!accountId) {
+      listEl.textContent = 'You are not an admin of any account.';
+      return;
+    }
+    const { data, error } = await supabase
+      .from('allowed_emails')
+      .select('id, email, created_at')
+      .eq('account_id', accountId)
+      .order('created_at', { ascending: false });
+    if (error) { listEl.textContent = 'Error: ' + error.message; return; }
+    if (!data || data.length === 0) { listEl.textContent = 'No allowed emails yet.'; return; }
+    listEl.innerHTML = '';
+    data.forEach((row) => {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'device-row';
+      rowEl.innerHTML = `<span>${row.email}</span>`;
+      const btn = document.createElement('button');
+      btn.className = 'btn-small';
+      btn.style.background = '#9E3A3F';
+      btn.textContent = 'Remove';
+      btn.addEventListener('click', async () => {
+        btn.textContent = '...';
+        const { error: delError } = await supabase.from('allowed_emails').delete().eq('id', row.id);
+        if (delError) {
+          rowEl.innerHTML += `<span style="color:#9E3A3F;">${delError.message}</span>`;
+        } else {
+          rowEl.remove();
+        }
+      });
+      rowEl.appendChild(btn);
+      listEl.appendChild(rowEl);
+    });
+  });
+
+  document.getElementById('add-allowed-btn').addEventListener('click', async () => {
+    const email = document.getElementById('new-allowed-email-input').value.trim().toLowerCase();
+    const resultEl = document.getElementById('add-allowed-result');
+    if (!email) return;
+    resultEl.style.color = '#7C7561';
+    resultEl.textContent = 'Adding...';
+    const accountId = await ensureAdminAccountId();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!accountId) {
+      resultEl.style.color = '#9E3A3F';
+      resultEl.textContent = 'You are not an admin of any account.';
+      return;
+    }
+    const { error } = await supabase.from('allowed_emails').insert({ account_id: accountId, email, added_by: user.id });
+    if (error) {
+      resultEl.style.color = '#9E3A3F';
+      resultEl.textContent = 'Error: ' + error.message;
+    } else {
+      resultEl.style.color = '#2E6E5E';
+      resultEl.textContent = 'Added.';
+      document.getElementById('new-allowed-email-input').value = '';
+    }
   });
 </script>
 </body>
