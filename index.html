@@ -69,8 +69,8 @@
 
       <div style="text-align:left; margin-top:18px;">
         <hr style="border:none;border-top:1px solid #D9D1BA;margin:18px 0;">
-        <p style="font-size:12px;color:#7C7561;margin-bottom:10px;">Painel admin (teste) — pedidos pendentes</p>
-        <button id="list-pending-btn" class="btn-logout" style="width:100%;justify-content:center;">Ver pedidos pendentes</button>
+        <p style="font-size:12px;color:#7C7561;margin-bottom:10px;">Admin panel (test) — manage devices</p>
+        <button id="list-pending-btn" class="btn-logout" style="width:100%;justify-content:center;">View devices</button>
         <div id="pending-list" style="margin-top:10px;"></div>
       </div>
     </div>
@@ -211,42 +211,66 @@
 
   document.getElementById('list-pending-btn').addEventListener('click', async () => {
     const listEl = document.getElementById('pending-list');
-    listEl.textContent = 'A carregar...';
+    listEl.textContent = 'Loading...';
     const { data, error } = await supabase
       .from('devices')
       .select('id, device_name, user_id, status, created_at')
-      .eq('status', 'pending')
       .order('created_at', { ascending: false });
 
     if (error) {
-      listEl.textContent = 'Erro: ' + error.message;
+      listEl.textContent = 'Error: ' + error.message;
       return;
     }
     if (!data || data.length === 0) {
-      listEl.textContent = 'Nenhum pedido pendente (ou não és admin de nenhuma conta).';
+      listEl.textContent = 'No devices found (or you are not an admin of any account).';
       return;
     }
+    const statusColor = { pending: '#B98A2E', approved: '#2E6E5E', revoked: '#9E3A3F' };
     listEl.innerHTML = '';
     data.forEach((d) => {
       const row = document.createElement('div');
       row.className = 'device-row';
-      row.innerHTML = `<span>${d.device_name}</span>`;
-      const btn = document.createElement('button');
-      btn.className = 'btn-small';
-      btn.textContent = 'Aprovar';
-      btn.addEventListener('click', async () => {
-        btn.textContent = '...';
-        const { data: approveData, error: approveError } = await supabase.functions.invoke('approve-device', {
-          body: { device_id: d.id }
+      const label = document.createElement('span');
+      label.innerHTML = `${d.device_name} <span style="color:${statusColor[d.status]};font-weight:600;">(${d.status})</span>`;
+      row.appendChild(label);
+
+      if (d.status === 'pending') {
+        const btn = document.createElement('button');
+        btn.className = 'btn-small';
+        btn.textContent = 'Approve';
+        btn.addEventListener('click', async () => {
+          btn.textContent = '...';
+          const { data: approveData, error: approveError } = await supabase.functions.invoke('approve-device', {
+            body: { device_id: d.id }
+          });
+          if (approveError || approveData?.error) {
+            const msg = await readError(approveError, approveData);
+            row.innerHTML += `<span style="color:#9E3A3F;">${msg}</span>`;
+          } else {
+            label.innerHTML = `${d.device_name} <strong style="color:#2E6E5E;">Code: ${approveData.code}</strong>`;
+          }
         });
-        if (approveError || approveData?.error) {
-          const msg = await readError(approveError, approveData);
-          row.innerHTML += `<span style="color:#9E3A3F;">${msg}</span>`;
-        } else {
-          row.innerHTML = `<span>${d.device_name}</span><strong style="color:#2E6E5E;">Código: ${approveData.code}</strong>`;
-        }
-      });
-      row.appendChild(btn);
+        row.appendChild(btn);
+      } else if (d.status === 'approved') {
+        const btn = document.createElement('button');
+        btn.className = 'btn-small';
+        btn.style.background = '#9E3A3F';
+        btn.textContent = 'Revoke';
+        btn.addEventListener('click', async () => {
+          btn.textContent = '...';
+          const { data: revokeData, error: revokeError } = await supabase.functions.invoke('revoke-device', {
+            body: { device_id: d.id }
+          });
+          if (revokeError || revokeData?.error) {
+            const msg = await readError(revokeError, revokeData);
+            row.innerHTML += `<span style="color:#9E3A3F;">${msg}</span>`;
+          } else {
+            label.innerHTML = `${d.device_name} <span style="color:#9E3A3F;font-weight:600;">(revoked)</span>`;
+            btn.remove();
+          }
+        });
+        row.appendChild(btn);
+      }
       listEl.appendChild(row);
     });
   });
