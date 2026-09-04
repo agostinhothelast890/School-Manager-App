@@ -446,6 +446,12 @@
     const email = document.getElementById('recovery-email-input').value.trim().toLowerCase();
     const resultEl = document.getElementById('recovery-result');
     if (!email) return;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      resultEl.style.color = '#9E3A3F';
+      resultEl.textContent = 'Please enter a valid email address.';
+      return;
+    }
     resultEl.style.color = '#7C7561';
     resultEl.textContent = 'Saving...';
     const accountId = await ensureAdminAccountId();
