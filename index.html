@@ -97,6 +97,18 @@
     errorBoxEl.textContent = msg;
   }
 
+  async function readError(error, data) {
+    if (data?.error) return data.error;
+    if (error) {
+      try {
+        const body = await error.context.json();
+        if (body?.error) return body.error;
+      } catch (_) {}
+      return error.message;
+    }
+    return null;
+  }
+
   function renderUser(user) {
     if (user) {
       loggedOutEl.style.display = 'none';
@@ -142,12 +154,9 @@
       body: { account_name, device_name }
     });
 
-    if (error) {
+    if (error || data?.error) {
       resultEl.style.color = '#9E3A3F';
-      resultEl.textContent = 'Erro: ' + error.message;
-    } else if (data?.error) {
-      resultEl.style.color = '#9E3A3F';
-      resultEl.textContent = 'Erro: ' + data.error;
+      resultEl.textContent = 'Erro: ' + await readError(error, data);
     } else {
       resultEl.style.color = '#2E6E5E';
       resultEl.textContent = 'Conta criada! account_id: ' + data.account_id + ' — este aparelho já está aprovado.';
@@ -165,12 +174,9 @@
       body: { admin_email, device_name }
     });
 
-    if (error) {
+    if (error || data?.error) {
       resultEl.style.color = '#9E3A3F';
-      resultEl.textContent = 'Erro: ' + error.message;
-    } else if (data?.error) {
-      resultEl.style.color = '#9E3A3F';
-      resultEl.textContent = 'Erro: ' + data.error;
+      resultEl.textContent = 'Erro: ' + await readError(error, data);
     } else {
       resultEl.style.color = '#2E6E5E';
       resultEl.textContent = 'Pedido enviado! Estado: ' + data.status + ' (device_id: ' + data.device_id + ')';
@@ -194,12 +200,9 @@
       body: { device_id: currentDeviceId, code }
     });
 
-    if (error) {
+    if (error || data?.error) {
       resultEl.style.color = '#9E3A3F';
-      resultEl.textContent = 'Erro: ' + error.message;
-    } else if (data?.error) {
-      resultEl.style.color = '#9E3A3F';
-      resultEl.textContent = 'Erro: ' + data.error;
+      resultEl.textContent = 'Erro: ' + await readError(error, data);
     } else {
       resultEl.style.color = '#2E6E5E';
       resultEl.textContent = 'Estado: ' + data.status + ' — aparelho aprovado!';
@@ -237,7 +240,8 @@
           body: { device_id: d.id }
         });
         if (approveError || approveData?.error) {
-          row.innerHTML += `<span style="color:#9E3A3F;">${(approveError && approveError.message) || approveData.error}</span>`;
+          const msg = await readError(approveError, approveData);
+          row.innerHTML += `<span style="color:#9E3A3F;">${msg}</span>`;
         } else {
           row.innerHTML = `<span>${d.device_name}</span><strong style="color:#2E6E5E;">Código: ${approveData.code}</strong>`;
         }
