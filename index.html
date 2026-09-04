@@ -83,6 +83,13 @@
         <button id="add-allowed-btn" class="btn-google" style="width:100%;justify-content:center;">Add</button>
         <div id="add-allowed-result" style="margin-top:10px;font-size:12px;"></div>
       </div>
+
+      <div style="text-align:left; margin-top:18px;">
+        <hr style="border:none;border-top:1px solid #D9D1BA;margin:18px 0;">
+        <p style="font-size:12px;color:#7C7561;margin-bottom:10px;">Admin panel (test) — members</p>
+        <button id="view-members-btn" class="btn-logout" style="width:100%;justify-content:center;">View members</button>
+        <div id="members-list" style="margin-top:10px;"></div>
+      </div>
     </div>
 
     <div id="error-box" class="status error" style="display:none;"></div>
@@ -361,6 +368,50 @@
       resultEl.textContent = 'Added.';
       document.getElementById('new-allowed-email-input').value = '';
     }
+  });
+
+  document.getElementById('view-members-btn').addEventListener('click', async () => {
+    const listEl = document.getElementById('members-list');
+    listEl.textContent = 'Loading...';
+    const accountId = await ensureAdminAccountId();
+    if (!accountId) {
+      listEl.textContent = 'You are not an admin of any account.';
+      return;
+    }
+    const { data, error } = await supabase
+      .from('account_members')
+      .select('id, email, role')
+      .eq('account_id', accountId)
+      .order('email');
+    if (error) { listEl.textContent = 'Error: ' + error.message; return; }
+    listEl.innerHTML = '';
+    data.forEach((m) => {
+      const row = document.createElement('div');
+      row.className = 'device-row';
+      const label = document.createElement('span');
+      label.textContent = `${m.email} (${m.role})`;
+      row.appendChild(label);
+      if (m.role === 'staff') {
+        const btn = document.createElement('button');
+        btn.className = 'btn-small';
+        btn.textContent = 'Promote to co-admin';
+        btn.addEventListener('click', async () => {
+          btn.textContent = '...';
+          const { error: promoteError } = await supabase
+            .from('account_members')
+            .update({ role: 'co_admin' })
+            .eq('id', m.id);
+          if (promoteError) {
+            row.innerHTML += `<span style="color:#9E3A3F;">${promoteError.message}</span>`;
+          } else {
+            label.textContent = `${m.email} (co_admin)`;
+            btn.remove();
+          }
+        });
+        row.appendChild(btn);
+      }
+      listEl.appendChild(row);
+    });
   });
 </script>
 </body>
