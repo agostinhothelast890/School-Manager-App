@@ -90,6 +90,17 @@
         <button id="view-members-btn" class="btn-logout" style="width:100%;justify-content:center;">View members</button>
         <div id="members-list" style="margin-top:10px;"></div>
       </div>
+
+      <div style="text-align:left; margin-top:18px;">
+        <hr style="border:none;border-top:1px solid #D9D1BA;margin:18px 0;">
+        <p style="font-size:12px;color:#7C7561;margin-bottom:10px;">Admin panel (test) — recovery email</p>
+        <button id="view-recovery-btn" class="btn-logout" style="width:100%;justify-content:center;">View current recovery email</button>
+        <div id="recovery-current" style="margin-top:8px;font-size:12px;color:#7C7561;"></div>
+        <label class="field-label" style="margin-top:12px;">Set / update recovery email</label>
+        <input id="recovery-email-input" type="email" class="field-input" placeholder="backup@example.com" />
+        <button id="save-recovery-btn" class="btn-google" style="width:100%;justify-content:center;">Save</button>
+        <div id="recovery-result" style="margin-top:10px;font-size:12px;"></div>
+      </div>
     </div>
 
     <div id="error-box" class="status error" style="display:none;"></div>
@@ -412,6 +423,46 @@
       }
       listEl.appendChild(row);
     });
+  });
+
+  document.getElementById('view-recovery-btn').addEventListener('click', async () => {
+    const currentEl = document.getElementById('recovery-current');
+    currentEl.textContent = 'Loading...';
+    const accountId = await ensureAdminAccountId();
+    if (!accountId) {
+      currentEl.textContent = 'You are not an admin of any account.';
+      return;
+    }
+    const { data, error } = await supabase
+      .from('accounts')
+      .select('recovery_email')
+      .eq('id', accountId)
+      .single();
+    if (error) { currentEl.textContent = 'Error: ' + error.message; return; }
+    currentEl.textContent = data.recovery_email ? ('Current: ' + data.recovery_email) : 'No recovery email set yet.';
+  });
+
+  document.getElementById('save-recovery-btn').addEventListener('click', async () => {
+    const email = document.getElementById('recovery-email-input').value.trim().toLowerCase();
+    const resultEl = document.getElementById('recovery-result');
+    if (!email) return;
+    resultEl.style.color = '#7C7561';
+    resultEl.textContent = 'Saving...';
+    const accountId = await ensureAdminAccountId();
+    if (!accountId) {
+      resultEl.style.color = '#9E3A3F';
+      resultEl.textContent = 'You are not an admin of any account.';
+      return;
+    }
+    const { error } = await supabase.from('accounts').update({ recovery_email: email }).eq('id', accountId);
+    if (error) {
+      resultEl.style.color = '#9E3A3F';
+      resultEl.textContent = 'Error: ' + error.message;
+    } else {
+      resultEl.style.color = '#2E6E5E';
+      resultEl.textContent = 'Saved.';
+      document.getElementById('recovery-email-input').value = '';
+    }
   });
 </script>
 </body>
