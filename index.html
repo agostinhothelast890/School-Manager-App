@@ -185,10 +185,10 @@
 
       <div class="view active" id="s-view-dashboard">
         <div class="kpi-row">
-          <div class="kpi"><div class="kpi-value" id="kpi-approved">–</div><div class="kpi-label">Approved devices</div></div>
-          <div class="kpi"><div class="kpi-value warn" id="kpi-pending">–</div><div class="kpi-label">Pending requests</div></div>
-          <div class="kpi"><div class="kpi-value success" id="kpi-members">–</div><div class="kpi-label">Members</div></div>
-          <div class="kpi"><div class="kpi-value" id="kpi-allowed">–</div><div class="kpi-label">Allowed emails</div></div>
+          <div class="kpi" data-jump="s-devices" style="cursor:pointer;"><div class="kpi-value" id="kpi-approved">–</div><div class="kpi-label">Approved devices</div></div>
+          <div class="kpi" data-jump="s-devices" style="cursor:pointer;"><div class="kpi-value warn" id="kpi-pending">–</div><div class="kpi-label">Pending requests</div></div>
+          <div class="kpi" data-jump="s-members" style="cursor:pointer;"><div class="kpi-value success" id="kpi-members">–</div><div class="kpi-label">Members</div></div>
+          <div class="kpi" data-jump="s-allowed" style="cursor:pointer;"><div class="kpi-value" id="kpi-allowed">–</div><div class="kpi-label">Allowed emails</div></div>
         </div>
       </div>
 
@@ -425,6 +425,13 @@
       if (view === 's-allowed') loadAllowed();
       if (view === 's-members') loadMembers();
       if (view === 's-recovery') loadRecovery();
+    });
+  });
+
+  document.querySelectorAll('#screen-school .kpi[data-jump]').forEach((kpi) => {
+    kpi.addEventListener('click', () => {
+      const target = document.querySelector(`#screen-school .nav-item[data-view="${kpi.dataset.jump}"]`);
+      if (target) target.click();
     });
   });
 
