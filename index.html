@@ -201,8 +201,13 @@
       </div>
 
       <div class="view" id="s-view-students">
-        <div class="section-label">Students</div>
-        <div class="card"><div class="empty-note">Coming in the next step.</div></div>
+        <div class="toolbar">
+          <input class="input-inline" id="student-search" placeholder="Search by name or number…" style="flex:2;" />
+          <select class="input-inline" id="student-course-filter" style="flex:1;"><option value="">All courses</option></select>
+          <select class="input-inline" id="student-grade-filter" style="flex:1;"><option value="">All grades</option></select>
+          <button class="btn btn-gold-sm admin-only" id="add-student-btn">Add student</button>
+        </div>
+        <div class="card" id="students-list"><div class="empty-note">Loading…</div></div>
       </div>
 
       <div class="view" id="s-view-teachers">
@@ -468,6 +473,7 @@
       if (view === 's-allowed') loadAllowed();
       if (view === 's-members') loadMembers();
       if (view === 's-recovery') loadRecovery();
+      if (view === 's-students') loadStudents();
     });
   });
 
@@ -683,7 +689,205 @@
     });
   }
 
+  // ---------- STUDENTS ----------
+  let allStudents = [];
+  let currentStudentId = null;
+  let editingStudentId = null;
+
+  async function loadStudents() {
+    const listEl = document.getElementById('students-list');
+    listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    const { data, error } = await supabase.from('students').select('*').eq('account_id', schoolCtx.accountId).order('name');
+    if (error) { listEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    allStudents = data || [];
+
+    const courseSel = document.getElementById('student-course-filter');
+    const gradeSel = document.getElementById('student-grade-filter');
+    const courses = [...new Set(allStudents.map(s => s.course).filter(Boolean))];
+    const grades = [...new Set(allStudents.map(s => s.grade).filter(Boolean))];
+    courseSel.innerHTML = '<option value="">All courses</option>' + courses.map(c => `<option value="${c}">${c}</option>`).join('');
+    gradeSel.innerHTML = '<option value="">All grades</option>' + grades.map(g => `<option value="${g}">${g}</option>`).join('');
+
+    renderStudents();
+  }
+
+  function renderStudents() {
+    const listEl = document.getElementById('students-list');
+    const q = document.getElementById('student-search').value.trim().toLowerCase();
+    const course = document.getElementById('student-course-filter').value;
+    const grade = document.getElementById('student-grade-filter').value;
+
+    const filtered = allStudents.filter(s => {
+      if (course && s.course !== course) return false;
+      if (grade && s.grade !== grade) return false;
+      if (q && !(s.name.toLowerCase().includes(q) || s.student_number.includes(q))) return false;
+      return true;
+    });
+
+    if (filtered.length === 0) { listEl.innerHTML = '<div class="empty-note">No students found.</div>'; return; }
+    listEl.innerHTML = '';
+    filtered.forEach((s) => {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.style.cursor = 'pointer';
+      row.innerHTML = `<div class="row-main"><div class="row-title">${s.name}</div><div class="row-sub">#${s.student_number} · ${s.course} · ${s.grade}${s.turma} · ${s.room || '—'} · ${s.shift || '—'}</div></div>`;
+      row.addEventListener('click', () => openStudentPanel(s));
+      listEl.appendChild(row);
+    });
+  }
+
+  document.getElementById('student-search').addEventListener('input', renderStudents);
+  document.getElementById('student-course-filter').addEventListener('change', renderStudents);
+  document.getElementById('student-grade-filter').addEventListener('change', renderStudents);
+
+  async function openStudentPanel(student) {
+    currentStudentId = student.id;
+    document.getElementById('sp-number').textContent = '#' + student.student_number;
+    document.getElementById('sp-name').textContent = student.name;
+    document.getElementById('sp-meta').textContent = `${student.course} · ${student.grade}${student.turma} · ${student.room || '—'} · ${student.shift || '—'}`;
+    document.getElementById('student-panel-overlay').classList.remove('hidden');
+    document.getElementById('sp-note-input').value = '';
+    await loadNotes(student.id);
+    await loadGrades(student.id);
+  }
+  document.getElementById('sp-close').addEventListener('click', () => document.getElementById('student-panel-overlay').classList.add('hidden'));
+
+  async function loadNotes(studentId) {
+    const el = document.getElementById('sp-notes');
+    el.innerHTML = '<div class="empty-note">Loading…</div>';
+    const { data, error } = await supabase.from('student_notes').select('*').eq('student_id', studentId).order('created_at', { ascending: false });
+    if (error) { el.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    if (!data.length) { el.innerHTML = '<div class="empty-note">No notes yet.</div>'; return; }
+    el.innerHTML = data.map(n => `<div style="border-left:2px solid var(--gold);padding-left:10px;margin-bottom:10px;"><div style="font-size:12.5px;">${n.text}</div><div class="row-sub" style="margin-top:2px;">${n.author_email || ''}</div></div>`).join('');
+  }
+
+  document.getElementById('sp-add-note').addEventListener('click', async () => {
+    const text = document.getElementById('sp-note-input').value.trim();
+    if (!text || !currentStudentId) return;
+    const { error } = await supabase.from('student_notes').insert({
+      account_id: schoolCtx.accountId, student_id: currentStudentId, text,
+      author_email: currentUser.email, created_by: currentUser.id,
+    });
+    if (!error) { document.getElementById('sp-note-input').value = ''; loadNotes(currentStudentId); }
+  });
+
+  async function loadGrades(studentId) {
+    const el = document.getElementById('sp-grades');
+    el.innerHTML = '<div class="empty-note">Loading…</div>';
+    const { data, error } = await supabase.from('grades').select('*').eq('student_id', studentId).order('created_at', { ascending: false });
+    if (error) { el.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    el.innerHTML = data.length ? data.map(g => `<div class="row" style="padding:8px 0;"><span>${g.subject} · ${g.term}</span><strong>${g.value}</strong></div>`).join('') : '<div class="empty-note">No grades yet.</div>';
+
+    const canEdit = ['admin', 'co_admin'].includes(schoolCtx.role) ||
+      (schoolCtx.role === 'teacher' && (await supabase.rpc('teaches_student', { target_student_id: studentId })).data === true);
+    document.getElementById('sp-grade-form').classList.toggle('hidden', !canEdit);
+    document.getElementById('sp-grade-locked').classList.toggle('hidden', canEdit);
+  }
+
+  document.getElementById('sp-add-grade').addEventListener('click', async () => {
+    const subject = document.getElementById('sp-grade-subject').value.trim();
+    const term = document.getElementById('sp-grade-term').value.trim();
+    const value = document.getElementById('sp-grade-value').value.trim();
+    if (!subject || !term || !value || !currentStudentId) return;
+    const { error } = await supabase.from('grades').insert({
+      account_id: schoolCtx.accountId, student_id: currentStudentId, subject, term, value: Number(value), created_by: currentUser.id,
+    });
+    if (!error) {
+      document.getElementById('sp-grade-subject').value = '';
+      document.getElementById('sp-grade-term').value = '';
+      document.getElementById('sp-grade-value').value = '';
+      loadGrades(currentStudentId);
+    }
+  });
+
+  // ---------- ADD/EDIT STUDENT ----------
+  document.getElementById('add-student-btn').addEventListener('click', () => {
+    editingStudentId = null;
+    document.getElementById('sm-title').textContent = 'Add student';
+    ['sm-number', 'sm-name', 'sm-course', 'sm-grade', 'sm-turma', 'sm-room', 'sm-shift'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('sm-msg').textContent = '';
+    document.getElementById('student-modal-overlay').classList.remove('hidden');
+  });
+  document.getElementById('sm-cancel').addEventListener('click', () => document.getElementById('student-modal-overlay').classList.add('hidden'));
+
+  document.getElementById('sm-save').addEventListener('click', async () => {
+    const payload = {
+      account_id: schoolCtx.accountId,
+      student_number: document.getElementById('sm-number').value.trim(),
+      name: document.getElementById('sm-name').value.trim(),
+      course: document.getElementById('sm-course').value.trim(),
+      grade: document.getElementById('sm-grade').value.trim(),
+      turma: document.getElementById('sm-turma').value.trim(),
+      room: document.getElementById('sm-room').value.trim(),
+      shift: document.getElementById('sm-shift').value.trim(),
+    };
+    const msg = document.getElementById('sm-msg');
+    if (!payload.student_number || !payload.name) { msg.className = 'msg err'; msg.textContent = 'Number and name are required.'; return; }
+    const { error } = editingStudentId
+      ? await supabase.from('students').update(payload).eq('id', editingStudentId)
+      : await supabase.from('students').insert(payload);
+    if (error) { msg.className = 'msg err'; msg.textContent = error.message; return; }
+    document.getElementById('student-modal-overlay').classList.add('hidden');
+    loadStudents();
+  });
+
   boot();
 </script>
+<!-- ================= STUDENT DETAIL PANEL ================= -->
+<div id="student-panel-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;display:flex;justify-content:flex-end;">
+  <div style="width:380px;background:var(--panel);border-left:1px solid var(--line);height:100%;padding:24px;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+      <div>
+        <div class="row-sub" id="sp-number"></div>
+        <div style="font-size:18px;font-weight:700;margin-top:2px;" id="sp-name"></div>
+      </div>
+      <button class="btn" id="sp-close" style="padding:5px 9px;">✕</button>
+    </div>
+    <div class="row-sub" id="sp-meta" style="margin-bottom:18px;"></div>
+
+    <div class="section-label">Notes</div>
+    <div id="sp-notes" style="margin-bottom:14px;"></div>
+    <textarea id="sp-note-input" placeholder="Add a note…" rows="3" style="width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--text);font-size:13px;margin-bottom:8px;font-family:'Inter',sans-serif;"></textarea>
+    <button class="btn btn-gold-sm" id="sp-add-note" style="width:100%;justify-content:center;margin-bottom:22px;">Add note</button>
+
+    <div class="section-label">Grades</div>
+    <div id="sp-grades" style="margin-bottom:14px;"></div>
+    <div id="sp-grade-form" class="hidden">
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input class="input-inline" id="sp-grade-subject" placeholder="Subject" />
+        <input class="input-inline" id="sp-grade-term" placeholder="Term" style="max-width:70px;" />
+        <input class="input-inline" id="sp-grade-value" placeholder="Value" type="number" style="max-width:70px;" />
+      </div>
+      <button class="btn btn-gold-sm" id="sp-add-grade" style="width:100%;justify-content:center;">Add grade</button>
+    </div>
+    <div id="sp-grade-locked" class="empty-note hidden">You don't teach this student's class.</div>
+  </div>
+</div>
+
+<!-- ================= ADD/EDIT STUDENT MODAL ================= -->
+<div id="student-modal-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:60;display:flex;align-items:center;justify-content:center;">
+  <div style="width:340px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;">
+    <div style="font-size:15px;font-weight:700;margin-bottom:14px;" id="sm-title">Add student</div>
+    <label class="field-label">Student number</label>
+    <input class="input-inline" id="sm-number" style="width:100%;margin-bottom:10px;" />
+    <label class="field-label">Name</label>
+    <input class="input-inline" id="sm-name" style="width:100%;margin-bottom:10px;" />
+    <div style="display:flex;gap:8px;">
+      <div style="flex:1;"><label class="field-label">Course</label><input class="input-inline" id="sm-course" style="width:100%;margin-bottom:10px;" /></div>
+      <div style="flex:1;"><label class="field-label">Grade</label><input class="input-inline" id="sm-grade" style="width:100%;margin-bottom:10px;" /></div>
+      <div style="flex:1;"><label class="field-label">Turma</label><input class="input-inline" id="sm-turma" style="width:100%;margin-bottom:10px;" /></div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <div style="flex:1;"><label class="field-label">Room</label><input class="input-inline" id="sm-room" style="width:100%;margin-bottom:14px;" /></div>
+      <div style="flex:1;"><label class="field-label">Shift</label><input class="input-inline" id="sm-shift" style="width:100%;margin-bottom:14px;" /></div>
+    </div>
+    <div class="msg" id="sm-msg" style="margin-bottom:8px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-gold-sm" id="sm-save" style="flex:1;justify-content:center;">Save</button>
+      <button class="btn" id="sm-cancel" style="flex:1;justify-content:center;">Cancel</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
