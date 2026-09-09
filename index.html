@@ -211,13 +211,17 @@
       </div>
 
       <div class="view" id="s-view-teachers">
-        <div class="section-label">Teachers</div>
-        <div class="card"><div class="empty-note">Coming in the next step.</div></div>
+        <div class="toolbar">
+          <button class="btn btn-gold-sm admin-only" id="add-teacher-btn">Add teacher</button>
+        </div>
+        <div class="card" id="teachers-list"><div class="empty-note">Loading…</div></div>
       </div>
 
       <div class="view" id="s-view-timetable">
-        <div class="section-label">Timetable</div>
-        <div class="card"><div class="empty-note">Coming in the next step.</div></div>
+        <div class="toolbar">
+          <select class="input-inline" id="tt-turma-select" style="max-width:260px;"></select>
+        </div>
+        <div class="card" id="tt-grid"><div class="empty-note">Loading…</div></div>
       </div>
 
       <div class="view" id="s-view-debts">
@@ -474,6 +478,8 @@
       if (view === 's-members') loadMembers();
       if (view === 's-recovery') loadRecovery();
       if (view === 's-students') loadStudents();
+      if (view === 's-teachers') loadTeachers();
+      if (view === 's-timetable') loadTimetable();
     });
   });
 
@@ -574,8 +580,9 @@
   async function loadMembers() {
     const listEl = document.getElementById('members-list');
     listEl.innerHTML = '<div class="empty-note">Loading…</div>';
-    const { data, error } = await supabase.from('account_members').select('id, email, role').eq('account_id', schoolCtx.accountId).order('email');
+    const { data, error } = await supabase.from('account_members').select('id, user_id, email, role').eq('account_id', schoolCtx.accountId).order('email');
     if (error) { listEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    const { data: unlinkedTeachers } = await supabase.from('teachers').select('id, name').eq('account_id', schoolCtx.accountId).is('linked_user_id', null);
     listEl.innerHTML = '';
     data.forEach((m) => {
       const row = document.createElement('div');
@@ -590,13 +597,26 @@
       pill.textContent = m.role.toUpperCase();
       btnRow.appendChild(pill);
       if (m.role === 'staff') {
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-gold-sm'; btn.textContent = 'Promote to co-admin';
-        btn.addEventListener('click', async () => {
+        const promoteBtn = document.createElement('button');
+        promoteBtn.className = 'btn btn-gold-sm'; promoteBtn.textContent = 'Promote to co-admin';
+        promoteBtn.addEventListener('click', async () => {
           const { error: upErr } = await supabase.from('account_members').update({ role: 'co_admin' }).eq('id', m.id);
-          if (!upErr) { pill.textContent = 'CO_ADMIN'; pill.className = 'pill co_admin'; btn.remove(); }
+          if (!upErr) loadMembers();
         });
-        btnRow.appendChild(btn);
+        btnRow.appendChild(promoteBtn);
+
+        if (unlinkedTeachers && unlinkedTeachers.length) {
+          const sel = document.createElement('select');
+          sel.className = 'input-inline'; sel.style.maxWidth = '150px';
+          sel.innerHTML = '<option value="">Make teacher…</option>' + unlinkedTeachers.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+          sel.addEventListener('change', async () => {
+            if (!sel.value) return;
+            await supabase.from('teachers').update({ linked_user_id: m.user_id }).eq('id', sel.value);
+            const { error: upErr } = await supabase.from('account_members').update({ role: 'teacher' }).eq('id', m.id);
+            if (!upErr) loadMembers();
+          });
+          btnRow.appendChild(sel);
+        }
       }
       row.appendChild(btnRow);
       listEl.appendChild(row);
@@ -778,6 +798,14 @@
     if (error) { el.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
     el.innerHTML = data.length ? data.map(g => `<div class="row" style="padding:8px 0;"><span>${g.subject} · ${g.term}</span><strong>${g.value}</strong></div>`).join('') : '<div class="empty-note">No grades yet.</div>';
 
+    const student = allStudents.find(s => s.id === studentId);
+    const subjectSel = document.getElementById('sp-grade-subject');
+    if (student) {
+      const { data: entries } = await supabase.from('timetable_entries').select('subject').eq('account_id', schoolCtx.accountId).eq('course', student.course).eq('grade', student.grade).eq('turma', student.turma);
+      const subjects = [...new Set((entries || []).map(e => e.subject).filter(Boolean))];
+      subjectSel.innerHTML = '<option value="">Subject…</option>' + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+    }
+
     const canEdit = ['admin', 'co_admin'].includes(schoolCtx.role) ||
       (schoolCtx.role === 'teacher' && (await supabase.rpc('teaches_student', { target_student_id: studentId })).data === true);
     document.getElementById('sp-grade-form').classList.toggle('hidden', !canEdit);
@@ -785,16 +813,15 @@
   }
 
   document.getElementById('sp-add-grade').addEventListener('click', async () => {
-    const subject = document.getElementById('sp-grade-subject').value.trim();
-    const term = document.getElementById('sp-grade-term').value.trim();
-    const value = document.getElementById('sp-grade-value').value.trim();
-    if (!subject || !term || !value || !currentStudentId) return;
+    const subject = document.getElementById('sp-grade-subject').value;
+    const term = document.getElementById('sp-grade-term').value;
+    const value = Number(document.getElementById('sp-grade-value').value);
+    if (!subject || !term || document.getElementById('sp-grade-value').value === '' || !currentStudentId) return;
+    if (value < 0 || value > 20) { alert('Grade must be between 0 and 20.'); return; }
     const { error } = await supabase.from('grades').insert({
-      account_id: schoolCtx.accountId, student_id: currentStudentId, subject, term, value: Number(value), created_by: currentUser.id,
+      account_id: schoolCtx.accountId, student_id: currentStudentId, subject, term, value, created_by: currentUser.id,
     });
     if (!error) {
-      document.getElementById('sp-grade-subject').value = '';
-      document.getElementById('sp-grade-term').value = '';
       document.getElementById('sp-grade-value').value = '';
       loadGrades(currentStudentId);
     }
@@ -831,6 +858,174 @@
     loadStudents();
   });
 
+  // ---------- TEACHERS ----------
+  let allTeachers = [];
+  let editingTeacherId = null;
+
+  async function loadTeachers() {
+    const listEl = document.getElementById('teachers-list');
+    listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    const { data, error } = await supabase.from('teachers').select('*').eq('account_id', schoolCtx.accountId).order('name');
+    if (error) { listEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    allTeachers = data || [];
+    if (!allTeachers.length) { listEl.innerHTML = '<div class="empty-note">No teachers yet.</div>'; return; }
+    listEl.innerHTML = '';
+    allTeachers.forEach((t) => {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `<div class="row-main"><div class="row-title">${t.name}</div><div class="row-sub">${t.subjects || '—'} · ${t.phone || '—'}</div></div>`;
+      const btnRow = document.createElement('div');
+      btnRow.className = 'btn-row';
+      const pill = document.createElement('span');
+      pill.className = 'pill ' + (t.linked_user_id ? 'active' : 'pending');
+      pill.textContent = t.linked_user_id ? 'LINKED' : 'UNLINKED';
+      btnRow.appendChild(pill);
+      if (['admin', 'co_admin'].includes(schoolCtx.role)) {
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn'; editBtn.textContent = 'Edit';
+        editBtn.addEventListener('click', () => openTeacherModal(t));
+        btnRow.appendChild(editBtn);
+      }
+      row.appendChild(btnRow);
+      listEl.appendChild(row);
+    });
+  }
+
+  function openTeacherModal(teacher) {
+    editingTeacherId = teacher ? teacher.id : null;
+    document.getElementById('tm-name').value = teacher ? teacher.name : '';
+    document.getElementById('tm-subjects').value = teacher ? (teacher.subjects || '') : '';
+    document.getElementById('tm-phone').value = teacher ? (teacher.phone || '') : '';
+    document.getElementById('tm-msg').textContent = '';
+    document.getElementById('teacher-modal-overlay').classList.remove('hidden');
+  }
+  document.getElementById('add-teacher-btn').addEventListener('click', () => openTeacherModal(null));
+  document.getElementById('tm-cancel').addEventListener('click', () => document.getElementById('teacher-modal-overlay').classList.add('hidden'));
+
+  document.getElementById('tm-save').addEventListener('click', async () => {
+    const payload = {
+      account_id: schoolCtx.accountId,
+      name: document.getElementById('tm-name').value.trim(),
+      subjects: document.getElementById('tm-subjects').value.trim(),
+      phone: document.getElementById('tm-phone').value.trim(),
+    };
+    const msg = document.getElementById('tm-msg');
+    if (!payload.name) { msg.className = 'msg err'; msg.textContent = 'Name is required.'; return; }
+    const { error } = editingTeacherId
+      ? await supabase.from('teachers').update(payload).eq('id', editingTeacherId)
+      : await supabase.from('teachers').insert(payload);
+    if (error) { msg.className = 'msg err'; msg.textContent = error.message; return; }
+    document.getElementById('teacher-modal-overlay').classList.add('hidden');
+    loadTeachers();
+  });
+
+  // ---------- TIMETABLE ----------
+  const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const PERIODS = ['morning', 'afternoon'];
+  let ttTurmas = [];
+  let ttEntries = [];
+
+  async function loadTimetable() {
+    const { data: students } = await supabase.from('students').select('course, grade, turma').eq('account_id', schoolCtx.accountId);
+    const seen = new Set();
+    ttTurmas = [];
+    (students || []).forEach(s => {
+      const key = `${s.course}|${s.grade}|${s.turma}`;
+      if (!seen.has(key)) { seen.add(key); ttTurmas.push({ course: s.course, grade: s.grade, turma: s.turma, key }); }
+    });
+    const sel = document.getElementById('tt-turma-select');
+    sel.innerHTML = ttTurmas.map(t => `<option value="${t.key}">${t.course} ${t.grade}${t.turma}</option>`).join('') || '<option value="">No classes yet — add students first</option>';
+
+    if (!allTeachers.length) {
+      const { data } = await supabase.from('teachers').select('*').eq('account_id', schoolCtx.accountId).order('name');
+      allTeachers = data || [];
+    }
+
+    await renderTimetableGrid();
+  }
+  document.getElementById('tt-turma-select').addEventListener('change', renderTimetableGrid);
+
+  async function renderTimetableGrid() {
+    const gridEl = document.getElementById('tt-grid');
+    const key = document.getElementById('tt-turma-select').value;
+    if (!key) { gridEl.innerHTML = '<div class="empty-note">No classes yet — add students first.</div>'; return; }
+    gridEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    const [course, grade, turma] = key.split('|');
+    const { data, error } = await supabase.from('timetable_entries').select('*').eq('account_id', schoolCtx.accountId).eq('course', course).eq('grade', grade).eq('turma', turma);
+    if (error) { gridEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    ttEntries = data || [];
+
+    let html = '<table style="width:100%;border-collapse:collapse;">';
+    html += '<tr><td></td>' + DAYS.map(d => `<td class="row-sub" style="padding:8px;text-align:center;">${d.slice(0, 3)}</td>`).join('') + '</tr>';
+    PERIODS.forEach(p => {
+      html += `<tr><td class="row-sub mono" style="padding:8px;white-space:nowrap;">${p}</td>`;
+      DAYS.forEach(d => {
+        const entry = ttEntries.find(e => e.day === d && e.period === p);
+        const teacherName = entry ? (allTeachers.find(t => t.id === entry.teacher_id)?.name || '—') : '';
+        html += `<td class="tt-cell" data-day="${d}" data-period="${p}" style="border:1px solid var(--line);padding:8px;cursor:pointer;vertical-align:top;min-width:100px;">
+          ${entry ? `<div style="font-size:12px;font-weight:600;">${entry.subject}</div><div class="row-sub">${teacherName}</div><div class="row-sub" style="color:var(--gold);">${entry.room || ''}</div>` : '<div class="row-sub" style="font-style:italic;">Free</div>'}
+        </td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</table>';
+    gridEl.innerHTML = html;
+
+    gridEl.querySelectorAll('.tt-cell').forEach(cell => {
+      cell.addEventListener('click', () => openTimetableModal(cell.dataset.day, cell.dataset.period));
+    });
+  }
+
+  let ttEditingDay = null, ttEditingPeriod = null;
+  function openTimetableModal(day, period) {
+    ttEditingDay = day; ttEditingPeriod = period;
+    const key = document.getElementById('tt-turma-select').value;
+    const entry = ttEntries.find(e => e.day === day && e.period === period);
+    document.getElementById('tt-modal-title').textContent = `${key.split('|').slice(1).join('')} · ${day} · ${period}`;
+    document.getElementById('tt-subject').value = entry ? entry.subject : '';
+    document.getElementById('tt-room').value = entry ? (entry.room || '') : '';
+    const teacherSel = document.getElementById('tt-teacher');
+    teacherSel.innerHTML = '<option value="">— none —</option>' + allTeachers.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+    teacherSel.value = entry ? (entry.teacher_id || '') : '';
+    document.getElementById('tt-msg').textContent = '';
+    document.getElementById('tt-modal-overlay').classList.remove('hidden');
+  }
+  document.getElementById('tt-cancel').addEventListener('click', () => document.getElementById('tt-modal-overlay').classList.add('hidden'));
+
+  document.getElementById('tt-save').addEventListener('click', async () => {
+    const key = document.getElementById('tt-turma-select').value;
+    const [course, grade, turma] = key.split('|');
+    const subject = document.getElementById('tt-subject').value.trim();
+    const teacher_id = document.getElementById('tt-teacher').value || null;
+    const room = document.getElementById('tt-room').value.trim();
+    const msg = document.getElementById('tt-msg');
+    const existing = ttEntries.find(e => e.day === ttEditingDay && e.period === ttEditingPeriod);
+
+    const payload = { account_id: schoolCtx.accountId, course, grade, turma, day: ttEditingDay, period: ttEditingPeriod, subject, teacher_id, room };
+    const { error } = existing
+      ? await supabase.from('timetable_entries').update(payload).eq('id', existing.id)
+      : await supabase.from('timetable_entries').insert(payload);
+
+    if (error) {
+      if (error.message.includes('unique_teacher_slot')) {
+        msg.className = 'msg err';
+        msg.textContent = 'This teacher already has a class at this exact day/period. Split professors — pick a different teacher for this class, or reassign the other one first.';
+      } else {
+        msg.className = 'msg err'; msg.textContent = error.message;
+      }
+      return;
+    }
+    document.getElementById('tt-modal-overlay').classList.add('hidden');
+    renderTimetableGrid();
+  });
+
+  document.getElementById('tt-clear').addEventListener('click', async () => {
+    const existing = ttEntries.find(e => e.day === ttEditingDay && e.period === ttEditingPeriod);
+    if (existing) await supabase.from('timetable_entries').delete().eq('id', existing.id);
+    document.getElementById('tt-modal-overlay').classList.add('hidden');
+    renderTimetableGrid();
+  });
+
   boot();
 </script>
 <!-- ================= STUDENT DETAIL PANEL ================= -->
@@ -854,9 +1049,11 @@
     <div id="sp-grades" style="margin-bottom:14px;"></div>
     <div id="sp-grade-form" class="hidden">
       <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <input class="input-inline" id="sp-grade-subject" placeholder="Subject" />
-        <input class="input-inline" id="sp-grade-term" placeholder="Term" style="max-width:70px;" />
-        <input class="input-inline" id="sp-grade-value" placeholder="Value" type="number" style="max-width:70px;" />
+        <select class="input-inline" id="sp-grade-subject"><option value="">Subject…</option></select>
+        <select class="input-inline" id="sp-grade-term" style="max-width:90px;">
+          <option value="1st">1st</option><option value="2nd">2nd</option><option value="3rd">3rd</option>
+        </select>
+        <input class="input-inline" id="sp-grade-value" placeholder="0-20" type="number" min="0" max="20" style="max-width:70px;" />
       </div>
       <button class="btn btn-gold-sm" id="sp-add-grade" style="width:100%;justify-content:center;">Add grade</button>
     </div>
@@ -885,6 +1082,43 @@
     <div style="display:flex;gap:8px;">
       <button class="btn btn-gold-sm" id="sm-save" style="flex:1;justify-content:center;">Save</button>
       <button class="btn" id="sm-cancel" style="flex:1;justify-content:center;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ADD/EDIT TEACHER MODAL ================= -->
+<div id="teacher-modal-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:60;display:flex;align-items:center;justify-content:center;">
+  <div style="width:320px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;">
+    <div style="font-size:15px;font-weight:700;margin-bottom:14px;">Teacher</div>
+    <label class="field-label">Name</label>
+    <input class="input-inline" id="tm-name" style="width:100%;margin-bottom:10px;" />
+    <label class="field-label">Subjects</label>
+    <input class="input-inline" id="tm-subjects" style="width:100%;margin-bottom:10px;" />
+    <label class="field-label">Phone</label>
+    <input class="input-inline" id="tm-phone" style="width:100%;margin-bottom:14px;" />
+    <div class="msg" id="tm-msg" style="margin-bottom:8px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-gold-sm" id="tm-save" style="flex:1;justify-content:center;">Save</button>
+      <button class="btn" id="tm-cancel" style="flex:1;justify-content:center;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= TIMETABLE CELL MODAL ================= -->
+<div id="tt-modal-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:60;display:flex;align-items:center;justify-content:center;">
+  <div style="width:300px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;">
+    <div style="font-size:14px;font-weight:700;margin-bottom:14px;" id="tt-modal-title"></div>
+    <label class="field-label">Subject</label>
+    <input class="input-inline" id="tt-subject" style="width:100%;margin-bottom:10px;" />
+    <label class="field-label">Teacher</label>
+    <select class="input-inline" id="tt-teacher" style="width:100%;margin-bottom:10px;"></select>
+    <label class="field-label">Room</label>
+    <input class="input-inline" id="tt-room" style="width:100%;margin-bottom:14px;" />
+    <div class="msg" id="tt-msg" style="margin-bottom:8px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-gold-sm" id="tt-save" style="flex:1;justify-content:center;">Save</button>
+      <button class="btn btn-danger-sm" id="tt-clear" style="flex:1;justify-content:center;">Clear</button>
+      <button class="btn" id="tt-cancel" style="flex:1;justify-content:center;">Cancel</button>
     </div>
   </div>
 </div>
