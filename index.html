@@ -831,7 +831,11 @@
   document.getElementById('add-student-btn').addEventListener('click', () => {
     editingStudentId = null;
     document.getElementById('sm-title').textContent = 'Add student';
-    ['sm-number', 'sm-name', 'sm-course', 'sm-grade', 'sm-turma', 'sm-room', 'sm-shift'].forEach(id => document.getElementById(id).value = '');
+    ['sm-number', 'sm-name', 'sm-turma'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('sm-course').selectedIndex = 0;
+    document.getElementById('sm-grade').selectedIndex = 0;
+    document.getElementById('sm-room').selectedIndex = 0;
+    document.getElementById('sm-shift').selectedIndex = 0;
     document.getElementById('sm-msg').textContent = '';
     document.getElementById('student-modal-overlay').classList.remove('hidden');
   });
@@ -1070,13 +1074,32 @@
     <label class="field-label">Name</label>
     <input class="input-inline" id="sm-name" style="width:100%;margin-bottom:10px;" />
     <div style="display:flex;gap:8px;">
-      <div style="flex:1;"><label class="field-label">Course</label><input class="input-inline" id="sm-course" style="width:100%;margin-bottom:10px;" /></div>
-      <div style="flex:1;"><label class="field-label">Grade</label><input class="input-inline" id="sm-grade" style="width:100%;margin-bottom:10px;" /></div>
+      <div style="flex:1;"><label class="field-label">Course</label>
+        <select class="input-inline" id="sm-course" style="width:100%;margin-bottom:10px;">
+          <option value="Informática">Informática</option>
+          <option value="Eletrónica e Telecomunicações">Eletrónica e Telecomunicações</option>
+        </select>
+      </div>
+      <div style="flex:1;"><label class="field-label">Grade</label>
+        <select class="input-inline" id="sm-grade" style="width:100%;margin-bottom:10px;">
+          <option value="10ª">10ª</option><option value="11ª">11ª</option><option value="12ª">12ª</option><option value="13ª">13ª</option>
+        </select>
+      </div>
       <div style="flex:1;"><label class="field-label">Turma</label><input class="input-inline" id="sm-turma" style="width:100%;margin-bottom:10px;" /></div>
     </div>
     <div style="display:flex;gap:8px;">
-      <div style="flex:1;"><label class="field-label">Room</label><input class="input-inline" id="sm-room" style="width:100%;margin-bottom:14px;" /></div>
-      <div style="flex:1;"><label class="field-label">Shift</label><input class="input-inline" id="sm-shift" style="width:100%;margin-bottom:14px;" /></div>
+      <div style="flex:1;"><label class="field-label">Room</label>
+        <select class="input-inline" id="sm-room" style="width:100%;margin-bottom:14px;">
+          <option value="Sala 1">Sala 1</option><option value="Sala 2">Sala 2</option><option value="Sala 3">Sala 3</option>
+          <option value="Sala 4">Sala 4</option><option value="Sala 5">Sala 5</option><option value="Sala 6">Sala 6</option>
+          <option value="Lab. Informática">Lab. Informática</option><option value="Lab. Eletrónica">Lab. Eletrónica</option><option value="Lab. Telecom">Lab. Telecom</option>
+        </select>
+      </div>
+      <div style="flex:1;"><label class="field-label">Shift</label>
+        <select class="input-inline" id="sm-shift" style="width:100%;margin-bottom:14px;">
+          <option value="morning">morning</option><option value="afternoon">afternoon</option>
+        </select>
+      </div>
     </div>
     <div class="msg" id="sm-msg" style="margin-bottom:8px;"></div>
     <div style="display:flex;gap:8px;">
