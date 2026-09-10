@@ -225,23 +225,30 @@
       </div>
 
       <div class="view" id="s-view-debts">
-        <div class="section-label">Debts</div>
-        <div class="card"><div class="empty-note">Coming in the next step.</div></div>
+        <div class="section-label">Students with debt</div>
+        <div class="card" id="debts-list"><div class="empty-note">Loading…</div></div>
       </div>
 
       <div class="view" id="s-view-folhas">
-        <div class="section-label">Test Papers</div>
-        <div class="card"><div class="empty-note">Coming in the next step.</div></div>
+        <div class="section-label">Test paper balances</div>
+        <div class="card" id="folhas-list"><div class="empty-note">Loading…</div></div>
       </div>
 
       <div class="view" id="s-view-calendar">
-        <div class="section-label">Calendar</div>
-        <div class="card"><div class="empty-note">Coming in the next step.</div></div>
+        <div class="toolbar">
+          <input class="input-inline" id="cal-date" type="date" style="max-width:160px;" />
+          <input class="input-inline" id="cal-title" placeholder="Event title" style="flex:1;" />
+          <select class="input-inline" id="cal-type" style="max-width:120px;">
+            <option value="term">Term</option><option value="holiday">Holiday</option><option value="exam">Exam</option>
+          </select>
+          <button class="btn btn-gold-sm admin-only" id="cal-add-btn">Add</button>
+        </div>
+        <div class="card" id="calendar-list"><div class="empty-note">Loading…</div></div>
       </div>
 
       <div class="view" id="s-view-pricing">
-        <div class="section-label">Pricing</div>
-        <div class="card"><div class="empty-note">Coming in the next step.</div></div>
+        <div class="section-label">Pricing (Kz)</div>
+        <div class="card" style="padding:18px;max-width:420px;" id="pricing-card"><div class="empty-note">Loading…</div></div>
       </div>
 
       <div class="view" id="s-view-devices">
@@ -480,6 +487,10 @@
       if (view === 's-students') loadStudents();
       if (view === 's-teachers') loadTeachers();
       if (view === 's-timetable') loadTimetable();
+      if (view === 's-debts') loadDebts();
+      if (view === 's-folhas') loadFolhas();
+      if (view === 's-calendar') loadCalendar();
+      if (view === 's-pricing') loadPricing();
     });
   });
 
@@ -1030,6 +1041,137 @@
     renderTimetableGrid();
   });
 
+  // ---------- DEBTS ----------
+  async function loadDebts() {
+    const listEl = document.getElementById('debts-list');
+    listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    const { data: events, error } = await supabase.from('debt_events').select('student_id, amount_kz').eq('account_id', schoolCtx.accountId);
+    if (error) { listEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    const totals = {};
+    (events || []).forEach(e => { totals[e.student_id] = (totals[e.student_id] || 0) + Number(e.amount_kz); });
+
+    if (!allStudents.length) { const { data } = await supabase.from('students').select('*').eq('account_id', schoolCtx.accountId); allStudents = data || []; }
+
+    const debtors = allStudents.filter(s => (totals[s.id] || 0) > 0).sort((a, b) => (totals[b.id] || 0) - (totals[a.id] || 0));
+    if (!debtors.length) { listEl.innerHTML = '<div class="empty-note">No students owe money right now.</div>'; return; }
+    listEl.innerHTML = '';
+    debtors.forEach((s) => {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `<div class="row-main"><div class="row-title">${s.name}</div><div class="row-sub">#${s.student_number} · ${s.course} · ${s.grade}${s.turma}</div></div><span class="pill pending mono">${totals[s.id].toLocaleString()} Kz</span>`;
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-gold-sm'; btn.textContent = 'Add entry';
+      btn.addEventListener('click', () => openLedgerModal('debt', s));
+      row.appendChild(btn);
+      listEl.appendChild(row);
+    });
+  }
+
+  // ---------- TEST PAPERS ----------
+  async function loadFolhas() {
+    const listEl = document.getElementById('folhas-list');
+    listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    const { data: events, error } = await supabase.from('folha_events').select('student_id, delta').eq('account_id', schoolCtx.accountId);
+    if (error) { listEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    const totals = {};
+    (events || []).forEach(e => { totals[e.student_id] = (totals[e.student_id] || 0) + Number(e.delta); });
+
+    if (!allStudents.length) { const { data } = await supabase.from('students').select('*').eq('account_id', schoolCtx.accountId); allStudents = data || []; }
+    if (!allStudents.length) { listEl.innerHTML = '<div class="empty-note">No students yet.</div>'; return; }
+    listEl.innerHTML = '';
+    allStudents.forEach((s) => {
+      const balance = totals[s.id] || 0;
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `<div class="row-main"><div class="row-title">${s.name}</div><div class="row-sub">#${s.student_number}</div></div><span class="pill ${balance <= 3 ? 'revoked' : 'active'} mono">${balance} left</span>`;
+      const btnRow = document.createElement('div'); btnRow.className = 'btn-row';
+      const sellBtn = document.createElement('button'); sellBtn.className = 'btn btn-gold-sm'; sellBtn.textContent = '+10';
+      sellBtn.addEventListener('click', async () => { await supabase.from('folha_events').insert({ account_id: schoolCtx.accountId, student_id: s.id, delta: 10, created_by: currentUser.id }); loadFolhas(); });
+      const useBtn = document.createElement('button'); useBtn.className = 'btn btn-danger-sm'; useBtn.textContent = '-1';
+      useBtn.addEventListener('click', async () => { await supabase.from('folha_events').insert({ account_id: schoolCtx.accountId, student_id: s.id, delta: -1, created_by: currentUser.id }); loadFolhas(); });
+      btnRow.appendChild(sellBtn); btnRow.appendChild(useBtn);
+      row.appendChild(btnRow);
+      listEl.appendChild(row);
+    });
+  }
+
+  // ---------- shared ledger modal (debts) ----------
+  let ledgerMode = null, ledgerStudent = null;
+  function openLedgerModal(mode, student) {
+    ledgerMode = mode; ledgerStudent = student;
+    document.getElementById('ledger-modal-title').textContent = `${student.name} — add debt entry`;
+    document.getElementById('ledger-amount-label').textContent = 'Amount (Kz) — negative for a payment';
+    document.getElementById('ledger-amount').value = '';
+    document.getElementById('ledger-desc').value = '';
+    document.getElementById('ledger-msg').textContent = '';
+    document.getElementById('ledger-modal-overlay').classList.remove('hidden');
+  }
+  document.getElementById('ledger-cancel').addEventListener('click', () => document.getElementById('ledger-modal-overlay').classList.add('hidden'));
+  document.getElementById('ledger-save').addEventListener('click', async () => {
+    const amount = Number(document.getElementById('ledger-amount').value);
+    const desc = document.getElementById('ledger-desc').value.trim();
+    const msg = document.getElementById('ledger-msg');
+    if (!amount) { msg.className = 'msg err'; msg.textContent = 'Enter an amount.'; return; }
+    const { error } = await supabase.from('debt_events').insert({
+      account_id: schoolCtx.accountId, student_id: ledgerStudent.id, amount_kz: amount, description: desc, created_by: currentUser.id,
+    });
+    if (error) { msg.className = 'msg err'; msg.textContent = error.message; return; }
+    document.getElementById('ledger-modal-overlay').classList.add('hidden');
+    loadDebts();
+  });
+
+  // ---------- CALENDAR ----------
+  async function loadCalendar() {
+    const listEl = document.getElementById('calendar-list');
+    listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    const { data, error } = await supabase.from('calendar_events').select('*').eq('account_id', schoolCtx.accountId).order('event_date');
+    if (error) { listEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    if (!data.length) { listEl.innerHTML = '<div class="empty-note">No events yet.</div>'; return; }
+    const typeColor = { term: 'active', holiday: 'admin', exam: 'revoked' };
+    listEl.innerHTML = data.map(e => `<div class="row"><div class="row-main"><div class="row-title">${e.title}</div><div class="row-sub">${e.event_date}</div></div><span class="pill ${typeColor[e.type]}">${e.type.toUpperCase()}</span></div>`).join('');
+  }
+  document.getElementById('cal-add-btn').addEventListener('click', async () => {
+    const event_date = document.getElementById('cal-date').value;
+    const title = document.getElementById('cal-title').value.trim();
+    const type = document.getElementById('cal-type').value;
+    if (!event_date || !title) return;
+    const { error } = await supabase.from('calendar_events').insert({ account_id: schoolCtx.accountId, event_date, title, type });
+    if (!error) { document.getElementById('cal-date').value = ''; document.getElementById('cal-title').value = ''; loadCalendar(); }
+  });
+
+  // ---------- PRICING ----------
+  async function loadPricing() {
+    const el = document.getElementById('pricing-card');
+    el.innerHTML = '<div class="empty-note">Loading…</div>';
+    const { data, error } = await supabase.from('pricing').select('*').eq('account_id', schoolCtx.accountId).maybeSingle();
+    if (error) { el.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    const locked = !['admin', 'co_admin'].includes(schoolCtx.role);
+    const fields = [
+      ['inscricao', 'Registration'], ['matricula', 'Enrollment fee'], ['confirmacao', 'Enrollment confirmation'],
+      ['mensalidade_10', 'Monthly — 10th grade'], ['mensalidade_11', 'Monthly — 11th grade'], ['mensalidade_12_13', 'Monthly — 12th/13th grade'],
+      ['folha_unit', 'Test paper (per sheet)'], ['certificado', 'Certificate issuance'],
+    ];
+    el.innerHTML = fields.map(([key, label]) => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);">
+        <span style="font-size:13px;">${label}</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" class="input-inline mono" data-key="${key}" value="${data ? data[key] : 0}" ${locked ? 'disabled' : ''} style="width:100px;text-align:right;" />
+          <span class="row-sub">Kz</span>
+        </div>
+      </div>`).join('') + (locked
+        ? '<div class="msg muted" style="margin-top:12px;">Only admins/co-admins can edit pricing.</div>'
+        : '<button class="btn btn-gold-sm" id="pricing-save-btn" style="width:100%;justify-content:center;margin-top:14px;">Save</button>');
+
+    if (!locked) {
+      document.getElementById('pricing-save-btn').addEventListener('click', async () => {
+        const payload = { account_id: schoolCtx.accountId };
+        fields.forEach(([key]) => { payload[key] = Number(el.querySelector(`[data-key="${key}"]`).value) || 0; });
+        const { error: upErr } = await supabase.from('pricing').upsert(payload, { onConflict: 'account_id' });
+        if (!upErr) loadPricing();
+      });
+    }
+  }
+
   boot();
 </script>
 <!-- ================= STUDENT DETAIL PANEL ================= -->
@@ -1142,6 +1284,24 @@
       <button class="btn btn-gold-sm" id="tt-save" style="flex:1;justify-content:center;">Save</button>
       <button class="btn btn-danger-sm" id="tt-clear" style="flex:1;justify-content:center;">Clear</button>
       <button class="btn" id="tt-cancel" style="flex:1;justify-content:center;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= LEDGER ENTRY MODAL (debts / folhas) ================= -->
+<div id="ledger-modal-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:60;display:flex;align-items:center;justify-content:center;">
+  <div style="width:280px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;">
+    <div style="font-size:14px;font-weight:700;margin-bottom:14px;" id="ledger-modal-title"></div>
+    <label class="field-label" id="ledger-amount-label">Amount</label>
+    <input class="input-inline" id="ledger-amount" type="number" style="width:100%;margin-bottom:10px;" />
+    <div id="ledger-desc-wrap">
+      <label class="field-label">Description</label>
+      <input class="input-inline" id="ledger-desc" style="width:100%;margin-bottom:10px;" />
+    </div>
+    <div class="msg" id="ledger-msg" style="margin-bottom:8px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-gold-sm" id="ledger-save" style="flex:1;justify-content:center;">Save</button>
+      <button class="btn" id="ledger-cancel" style="flex:1;justify-content:center;">Cancel</button>
     </div>
   </div>
 </div>
