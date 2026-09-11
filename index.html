@@ -60,6 +60,7 @@
   .nav { flex: 1; padding: 12px 10px; }
   .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 7px; font-size: 13px; color: var(--muted); cursor: pointer; margin-bottom: 2px; }
   .nav-item.active { background: var(--gold-soft); color: var(--gold); font-weight: 600; }
+  .nav-item.kbd-focus { outline: 1px solid var(--gold); outline-offset: -1px; }
   .nav-item:hover:not(.active) { color: var(--text); }
   .sidebar-footer { padding: 14px 18px; border-top: 1px solid var(--line); font-size: 10.5px; color: var(--muted); cursor: pointer; }
   .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
@@ -205,6 +206,11 @@
           <input class="input-inline" id="student-search" placeholder="Search by name or number…" style="flex:2;" />
           <select class="input-inline" id="student-course-filter" style="flex:1;"><option value="">All courses</option></select>
           <select class="input-inline" id="student-grade-filter" style="flex:1;"><option value="">All grades</option></select>
+          <select class="input-inline" id="student-turma-filter" style="flex:1;"><option value="">All turmas</option></select>
+          <select class="input-inline" id="student-room-filter" style="flex:1;"><option value="">All rooms</option></select>
+          <select class="input-inline" id="student-shift-filter" style="flex:1;">
+            <option value="">Both shifts</option><option value="morning">Morning</option><option value="afternoon">Afternoon</option>
+          </select>
           <button class="btn btn-gold-sm admin-only" id="add-student-btn">Add student</button>
         </div>
         <div class="card" id="students-list"><div class="empty-note">Loading…</div></div>
@@ -734,10 +740,16 @@
 
     const courseSel = document.getElementById('student-course-filter');
     const gradeSel = document.getElementById('student-grade-filter');
+    const turmaSel = document.getElementById('student-turma-filter');
+    const roomSel = document.getElementById('student-room-filter');
     const courses = [...new Set(allStudents.map(s => s.course).filter(Boolean))];
     const grades = [...new Set(allStudents.map(s => s.grade).filter(Boolean))];
+    const turmas = [...new Set(allStudents.map(s => s.turma).filter(Boolean))];
+    const rooms = [...new Set(allStudents.map(s => s.room).filter(Boolean))];
     courseSel.innerHTML = '<option value="">All courses</option>' + courses.map(c => `<option value="${c}">${c}</option>`).join('');
     gradeSel.innerHTML = '<option value="">All grades</option>' + grades.map(g => `<option value="${g}">${g}</option>`).join('');
+    turmaSel.innerHTML = '<option value="">All turmas</option>' + turmas.map(t => `<option value="${t}">Turma ${t}</option>`).join('');
+    roomSel.innerHTML = '<option value="">All rooms</option>' + rooms.map(r => `<option value="${r}">${r}</option>`).join('');
 
     renderStudents();
   }
@@ -747,10 +759,16 @@
     const q = document.getElementById('student-search').value.trim().toLowerCase();
     const course = document.getElementById('student-course-filter').value;
     const grade = document.getElementById('student-grade-filter').value;
+    const turma = document.getElementById('student-turma-filter').value;
+    const room = document.getElementById('student-room-filter').value;
+    const shift = document.getElementById('student-shift-filter').value;
 
     const filtered = allStudents.filter(s => {
       if (course && s.course !== course) return false;
       if (grade && s.grade !== grade) return false;
+      if (turma && s.turma !== turma) return false;
+      if (room && s.room !== room) return false;
+      if (shift && s.shift !== shift) return false;
       if (q && !(s.name.toLowerCase().includes(q) || s.student_number.includes(q))) return false;
       return true;
     });
@@ -770,6 +788,32 @@
   document.getElementById('student-search').addEventListener('input', renderStudents);
   document.getElementById('student-course-filter').addEventListener('change', renderStudents);
   document.getElementById('student-grade-filter').addEventListener('change', renderStudents);
+  document.getElementById('student-turma-filter').addEventListener('change', renderStudents);
+  document.getElementById('student-room-filter').addEventListener('change', renderStudents);
+  document.getElementById('student-shift-filter').addEventListener('change', renderStudents);
+
+  let pricingCache = null;
+  async function getPricing() {
+    if (!pricingCache) {
+      const { data } = await supabase.from('pricing').select('*').eq('account_id', schoolCtx.accountId).maybeSingle();
+      pricingCache = data || {};
+    }
+    return pricingCache;
+  }
+
+  async function addDebtCharge(studentId, amount, description) {
+    await supabase.from('debt_events').insert({ account_id: schoolCtx.accountId, student_id: studentId, amount_kz: amount, description, created_by: currentUser.id });
+    await loadStudentDebtBalance(studentId);
+  }
+
+  async function loadStudentDebtBalance(studentId) {
+    const { data } = await supabase.from('debt_events').select('amount_kz').eq('student_id', studentId);
+    const total = (data || []).reduce((a, e) => a + Number(e.amount_kz), 0);
+    const el = document.getElementById('sp-debt-balance');
+    el.textContent = total > 0 ? `Owes ${total.toLocaleString()} Kz` : (total < 0 ? `Credit ${Math.abs(total).toLocaleString()} Kz` : 'No balance owed');
+    el.style.color = total > 0 ? 'var(--warn)' : (total < 0 ? 'var(--success)' : 'var(--muted)');
+    return total;
+  }
 
   async function openStudentPanel(student) {
     currentStudentId = student.id;
@@ -778,6 +822,20 @@
     document.getElementById('sp-meta').textContent = `${student.course} · ${student.grade}${student.turma} · ${student.room || '—'} · ${student.shift || '—'}`;
     document.getElementById('student-panel-overlay').classList.remove('hidden');
     document.getElementById('sp-note-input').value = '';
+
+    const pricing = await getPricing();
+    document.getElementById('sp-charge-matricula').onclick = () => addDebtCharge(student.id, Number(pricing.matricula) || 0, 'Matrícula');
+    document.getElementById('sp-charge-confirmacao').onclick = () => addDebtCharge(student.id, Number(pricing.confirmacao) || 0, 'Confirmação');
+    const mensalidadeAmount = student.grade === '10ª' ? pricing.mensalidade_10 : student.grade === '11ª' ? pricing.mensalidade_11 : pricing.mensalidade_12_13;
+    document.getElementById('sp-charge-mensalidade').onclick = () => addDebtCharge(student.id, Number(mensalidadeAmount) || 0, `Mensalidade — ${student.grade}`);
+    document.getElementById('sp-record-payment').onclick = () => {
+      const amt = Number(document.getElementById('sp-payment-amount').value);
+      if (!amt) return;
+      addDebtCharge(student.id, -Math.abs(amt), 'Payment received');
+      document.getElementById('sp-payment-amount').value = '';
+    };
+    await loadStudentDebtBalance(student.id);
+
     await loadNotes(student.id);
     await loadGrades(student.id);
   }
@@ -1172,6 +1230,51 @@
     }
   }
 
+  // ---------- UX: click outside any overlay closes it ----------
+  ['student-panel-overlay', 'student-modal-overlay', 'teacher-modal-overlay', 'tt-modal-overlay', 'ledger-modal-overlay'].forEach(id => {
+    const overlay = document.getElementById(id);
+    if (overlay) overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.add('hidden'); });
+  });
+
+  // ---------- UX: Enter moves to next field, submits on the last one ----------
+  function enableEnterNavigation(containerId, submitBtnId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      const tag = e.target.tagName;
+      if (tag !== 'INPUT' && tag !== 'SELECT') return;
+      e.preventDefault();
+      const fields = Array.from(container.querySelectorAll('input, select')).filter(el => el.offsetParent !== null);
+      const idx = fields.indexOf(e.target);
+      if (idx > -1 && idx < fields.length - 1) {
+        fields[idx + 1].focus();
+        if (fields[idx + 1].tagName === 'INPUT') fields[idx + 1].select();
+      } else {
+        document.getElementById(submitBtnId)?.click();
+      }
+    });
+  }
+  enableEnterNavigation('student-modal-overlay', 'sm-save');
+  enableEnterNavigation('teacher-modal-overlay', 'tm-save');
+  enableEnterNavigation('tt-modal-overlay', 'tt-save');
+  enableEnterNavigation('ledger-modal-overlay', 'ledger-save');
+
+  // ---------- UX: arrow-key navigation for the sidebar ----------
+  document.addEventListener('keydown', (e) => {
+    if (!['ArrowUp', 'ArrowDown', 'Enter'].includes(e.key)) return;
+    const active = document.activeElement;
+    if (active && ['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) return;
+    const screen = ['screen-school', 'screen-platform'].find(id => !document.getElementById(id).classList.contains('hidden'));
+    if (!screen) return;
+    const items = Array.from(document.querySelectorAll(`#${screen} .nav-item`)).filter(el => el.offsetParent !== null);
+    if (!items.length) return;
+    let idx = items.findIndex(el => el.classList.contains('kbd-focus'));
+    if (e.key === 'ArrowDown') { e.preventDefault(); idx = (idx + 1) % items.length; items.forEach(el => el.classList.remove('kbd-focus')); items[idx].classList.add('kbd-focus'); items[idx].scrollIntoView({ block: 'nearest' }); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); idx = idx <= 0 ? items.length - 1 : idx - 1; items.forEach(el => el.classList.remove('kbd-focus')); items[idx].classList.add('kbd-focus'); items[idx].scrollIntoView({ block: 'nearest' }); }
+    if (e.key === 'Enter' && idx > -1) { e.preventDefault(); items[idx].click(); }
+  });
+
   boot();
 </script>
 <!-- ================= STUDENT DETAIL PANEL ================= -->
@@ -1185,6 +1288,20 @@
       <button class="btn" id="sp-close" style="padding:5px 9px;">✕</button>
     </div>
     <div class="row-sub" id="sp-meta" style="margin-bottom:18px;"></div>
+
+    <div id="sp-debt-section" class="admin-only hidden">
+      <div class="section-label">Debt</div>
+      <div class="row-sub mono" id="sp-debt-balance" style="margin-bottom:10px;font-size:15px;color:var(--warn);"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+        <button class="btn" id="sp-charge-matricula">Charge Matrícula</button>
+        <button class="btn" id="sp-charge-confirmacao">Charge Confirmação</button>
+        <button class="btn" id="sp-charge-mensalidade">Charge Mensalidade</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:22px;">
+        <input class="input-inline" id="sp-payment-amount" type="number" placeholder="Payment amount" />
+        <button class="btn btn-gold-sm" id="sp-record-payment">Record payment</button>
+      </div>
+    </div>
 
     <div class="section-label">Notes</div>
     <div id="sp-notes" style="margin-bottom:14px;"></div>
