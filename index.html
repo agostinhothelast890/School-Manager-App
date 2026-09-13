@@ -194,7 +194,7 @@
   </aside>
   <div class="main">
     <div class="topbar">
-      <h1 id="school-view-title">Dashboard</h1>
+      <h1 id="school-view-title" data-i18n="nav_dashboard">Dashboard</h1>
       <div class="account-pill"><span id="school-user-email"></span> <span class="role-badge" id="school-role-badge"></span></div>
     </div>
     <div class="content">
@@ -444,6 +444,93 @@
       ph_event_title: "Event title",
       ph_payment_amount: "Payment amount",
       ph_search_students: "Search by name or number…",
+
+      btn_approve: "Approve",
+      btn_reject: "Reject",
+      btn_revoke: "Revoke",
+      btn_suspend: "Suspend",
+      btn_reactivate: "Reactivate",
+      btn_remove: "Remove",
+      btn_edit: "Edit",
+      btn_promote_co_admin: "Promote to co-admin",
+      btn_add_entry: "Add entry",
+      opt_make_teacher: "Make teacher…",
+      opt_none: "— none —",
+      label_admin_prefix: "admin:",
+
+      status_pending: "PENDING",
+      status_approved: "APPROVED",
+      status_revoked: "REVOKED",
+      status_active: "ACTIVE",
+      status_suspended: "SUSPENDED",
+      status_admin: "ADMIN",
+      status_co_admin: "CO-ADMIN",
+      status_staff: "STAFF",
+      status_teacher: "TEACHER",
+      status_linked: "LINKED",
+      status_unlinked: "UNLINKED",
+
+      msg_loading: "Loading…",
+      msg_error_prefix: "Error:",
+      msg_both_fields_required: "Both fields are required.",
+      msg_creating: "Creating…",
+      msg_account_created: "Account created! Loading your dashboard…",
+      msg_sending_request: "Sending request…",
+      msg_request_sent: "Request sent (status: {status}). Ask your admin for the code once approved.",
+      msg_send_request_first: "Send a request first.",
+      msg_verifying: "Verifying…",
+      msg_approved_loading: "Approved! Loading your dashboard…",
+      msg_please_valid_email: "Please enter a valid email address.",
+      msg_grade_range: "Grade must be between 0 and 20.",
+      msg_number_name_required: "Number and name are required.",
+      msg_name_required: "Name is required.",
+      msg_enter_amount: "Enter an amount.",
+      msg_teacher_clash: "This teacher already has a class at this exact day/period. Split professors — pick a different teacher for this class, or reassign the other one first.",
+      msg_no_recovery_email: "No recovery email set yet.",
+      msg_current_prefix: "Current:",
+      msg_no_balance_owed: "No balance owed",
+      msg_owes: "Owes {amount} Kz",
+      msg_credit: "Credit {amount} Kz",
+      msg_pricing_locked: "Only admins/co-admins can edit pricing.",
+      msg_code_prefix: "Code:",
+      unit_left: "left",
+      label_amount_kz_signed: "Amount (Kz) — negative for a payment",
+
+      msg_no_devices: "No devices yet.",
+      msg_no_allowed_emails: "No allowed emails yet.",
+      msg_no_students_found: "No students found.",
+      msg_no_notes: "No notes yet.",
+      msg_no_grades: "No grades yet.",
+      msg_no_teachers: "No teachers yet.",
+      msg_no_classes_add_students: "No classes yet — add students first.",
+      msg_no_students_owe: "No students owe money right now.",
+      msg_no_students_yet: "No students yet.",
+      msg_no_events: "No events yet.",
+
+      price_inscricao: "Registration",
+      price_matricula: "Enrollment fee",
+      price_confirmacao: "Enrollment confirmation",
+      price_mensalidade_10: "Monthly — 10th grade",
+      price_mensalidade_11: "Monthly — 11th grade",
+      price_mensalidade_12_13: "Monthly — 12th/13th grade",
+      price_folha_unit: "Test paper (per sheet)",
+      price_certificado: "Certificate issuance",
+
+      day_Monday: "Monday",
+      day_Tuesday: "Tuesday",
+      day_Wednesday: "Wednesday",
+      day_Thursday: "Thursday",
+      day_Friday: "Friday",
+      day_Saturday: "Saturday",
+      day_Sunday: "Sunday",
+      day_abbr_Monday: "Mon",
+      day_abbr_Tuesday: "Tue",
+      day_abbr_Wednesday: "Wed",
+      day_abbr_Thursday: "Thu",
+      day_abbr_Friday: "Fri",
+      day_abbr_Saturday: "Sat",
+      day_abbr_Sunday: "Sun",
+      label_free: "Free",
     },
     pt: {
       btn_add: "Adicionar",
@@ -551,6 +638,93 @@
       ph_event_title: "Título do evento",
       ph_payment_amount: "Valor do pagamento",
       ph_search_students: "Pesquisar por nome ou número…",
+
+      btn_approve: "Aprovar",
+      btn_reject: "Rejeitar",
+      btn_revoke: "Revogar",
+      btn_suspend: "Suspender",
+      btn_reactivate: "Reactivar",
+      btn_remove: "Remover",
+      btn_edit: "Editar",
+      btn_promote_co_admin: "Promover a co-administrador",
+      btn_add_entry: "Adicionar lançamento",
+      opt_make_teacher: "Tornar professor…",
+      opt_none: "— nenhum —",
+      label_admin_prefix: "admin:",
+
+      status_pending: "PENDENTE",
+      status_approved: "APROVADO",
+      status_revoked: "REVOGADO",
+      status_active: "ACTIVA",
+      status_suspended: "SUSPENSA",
+      status_admin: "ADMIN",
+      status_co_admin: "CO-ADMIN",
+      status_staff: "EQUIPA",
+      status_teacher: "PROFESSOR",
+      status_linked: "LIGADO",
+      status_unlinked: "NÃO LIGADO",
+
+      msg_loading: "A carregar…",
+      msg_error_prefix: "Erro:",
+      msg_both_fields_required: "Ambos os campos são obrigatórios.",
+      msg_creating: "A criar…",
+      msg_account_created: "Conta criada! A carregar o seu painel…",
+      msg_sending_request: "A enviar pedido…",
+      msg_request_sent: "Pedido enviado (estado: {status}). Peça o código ao seu administrador assim que for aprovado.",
+      msg_send_request_first: "Envie um pedido primeiro.",
+      msg_verifying: "A verificar…",
+      msg_approved_loading: "Aprovado! A carregar o seu painel…",
+      msg_please_valid_email: "Introduza um endereço de e-mail válido.",
+      msg_grade_range: "A nota deve estar entre 0 e 20.",
+      msg_number_name_required: "Número e nome são obrigatórios.",
+      msg_name_required: "O nome é obrigatório.",
+      msg_enter_amount: "Indique um valor.",
+      msg_teacher_clash: "Este professor já tem uma aula exactamente neste dia/período. Professores sobrepostos — escolha outro professor para esta aula, ou reatribua primeiro a outra.",
+      msg_no_recovery_email: "Ainda não foi definido um e-mail de recuperação.",
+      msg_current_prefix: "Actual:",
+      msg_no_balance_owed: "Sem saldo em dívida",
+      msg_owes: "Deve {amount} Kz",
+      msg_credit: "Crédito de {amount} Kz",
+      msg_pricing_locked: "Apenas administradores/co-administradores podem editar os preços.",
+      msg_code_prefix: "Código:",
+      unit_left: "restantes",
+      label_amount_kz_signed: "Valor (Kz) — negativo para um pagamento",
+
+      msg_no_devices: "Ainda não há dispositivos.",
+      msg_no_allowed_emails: "Ainda não há e-mails permitidos.",
+      msg_no_students_found: "Nenhum aluno encontrado.",
+      msg_no_notes: "Ainda não há observações.",
+      msg_no_grades: "Ainda não há notas.",
+      msg_no_teachers: "Ainda não há professores.",
+      msg_no_classes_add_students: "Ainda não há turmas — adicione alunos primeiro.",
+      msg_no_students_owe: "Nenhum aluno deve dinheiro neste momento.",
+      msg_no_students_yet: "Ainda não há alunos.",
+      msg_no_events: "Ainda não há eventos.",
+
+      price_inscricao: "Inscrição",
+      price_matricula: "Matrícula",
+      price_confirmacao: "Confirmação",
+      price_mensalidade_10: "Mensalidade — 10ª classe",
+      price_mensalidade_11: "Mensalidade — 11ª classe",
+      price_mensalidade_12_13: "Mensalidade — 12ª/13ª classe",
+      price_folha_unit: "Folha de teste (por folha)",
+      price_certificado: "Emissão de certificado",
+
+      day_Monday: "Segunda-feira",
+      day_Tuesday: "Terça-feira",
+      day_Wednesday: "Quarta-feira",
+      day_Thursday: "Quinta-feira",
+      day_Friday: "Sexta-feira",
+      day_Saturday: "Sábado",
+      day_Sunday: "Domingo",
+      day_abbr_Monday: "Seg",
+      day_abbr_Tuesday: "Ter",
+      day_abbr_Wednesday: "Qua",
+      day_abbr_Thursday: "Qui",
+      day_abbr_Friday: "Sex",
+      day_abbr_Saturday: "Sáb",
+      day_abbr_Sunday: "Dom",
+      label_free: "Livre",
     },
   };
 
@@ -565,13 +739,79 @@
 
   let currentLang = getInitialLang();
 
-  function t(key) {
-    return (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key])
+  function t(key, vars) {
+    let str = (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key])
       || (TRANSLATIONS.en && TRANSLATIONS.en[key])
       || key;
+    if (vars) {
+      Object.keys(vars).forEach(k => { str = str.replace(`{${k}}`, vars[k]); });
+    }
+    return str;
+  }
+
+  // Raw enum/status values coming from the database (e.g. 'pending', 'admin', 'co_admin')
+  // are mapped to translated display labels here, independent of the CSS class (which
+  // still uses the raw lowercase value for styling).
+  function statusLabel(raw) {
+    if (!raw) return '';
+    const key = 'status_' + raw;
+    const dict = TRANSLATIONS[currentLang] || {};
+    if (dict[key]) return dict[key];
+    if (TRANSLATIONS.en[key]) return TRANSLATIONS.en[key];
+    return String(raw).toUpperCase();
+  }
+
+  function shiftLabel(raw) {
+    if (!raw) return '—';
+    return raw === 'morning' ? t('shift_morning') : (raw === 'afternoon' ? t('shift_afternoon') : raw);
+  }
+
+  function dayLabel(raw) {
+    return t('day_' + raw) !== ('day_' + raw) ? t('day_' + raw) : raw;
+  }
+
+  function dayAbbr(raw) {
+    return t('day_abbr_' + raw) !== ('day_abbr_' + raw) ? t('day_abbr_' + raw) : raw.slice(0, 3);
+  }
+
+  // Dynamic lists (students, teachers, devices, etc.) are rendered from JS with
+  // literal strings baked in at render time, so a language switch needs to
+  // re-run whichever loader populated the list currently on screen.
+  const schoolViewLoaders = {
+    's-dashboard': () => (typeof loadSchoolDashboard === 'function') && loadSchoolDashboard(),
+    's-students': () => (typeof loadStudents === 'function') && loadStudents(),
+    's-teachers': () => (typeof loadTeachers === 'function') && loadTeachers(),
+    's-timetable': () => (typeof loadTimetable === 'function') && loadTimetable(),
+    's-debts': () => (typeof loadDebts === 'function') && loadDebts(),
+    's-folhas': () => (typeof loadFolhas === 'function') && loadFolhas(),
+    's-calendar': () => (typeof loadCalendar === 'function') && loadCalendar(),
+    's-pricing': () => (typeof loadPricing === 'function') && loadPricing(),
+    's-devices': () => (typeof loadDevices === 'function') && loadDevices(),
+    's-allowed': () => (typeof loadAllowed === 'function') && loadAllowed(),
+    's-members': () => (typeof loadMembers === 'function') && loadMembers(),
+    's-recovery': () => (typeof loadRecovery === 'function') && loadRecovery(),
+  };
+
+  function refreshActiveView() {
+    const schoolScreen = document.getElementById('screen-school');
+    if (schoolScreen && !schoolScreen.classList.contains('hidden')) {
+      if (typeof schoolCtx !== 'undefined' && schoolCtx) {
+        const badge = document.getElementById('school-role-badge');
+        if (badge) badge.textContent = statusLabel(schoolCtx.role);
+      }
+      const activeNav = document.querySelector('#screen-school .nav-item.active');
+      if (activeNav && activeNav.dataset.view && schoolViewLoaders[activeNav.dataset.view]) {
+        schoolViewLoaders[activeNav.dataset.view]();
+      }
+    }
+    const platformScreen = document.getElementById('screen-platform');
+    if (platformScreen && !platformScreen.classList.contains('hidden')) {
+      if (typeof loadPlatformAccounts === 'function') loadPlatformAccounts();
+    }
   }
 
   function applyI18n(lang) {
+    const langChanged = TRANSLATIONS[lang] && lang !== currentLang;
     if (TRANSLATIONS[lang]) currentLang = lang;
     localStorage.setItem(LANG_STORAGE_KEY, currentLang);
     document.documentElement.lang = currentLang;
@@ -589,6 +829,8 @@
     document.querySelectorAll('.lang-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.lang === currentLang);
     });
+
+    if (langChanged) refreshActiveView();
   }
 
   document.querySelectorAll('.lang-btn').forEach(btn => {
@@ -665,7 +907,7 @@
         accountStatus: schoolMembership.accounts.status,
       };
       document.getElementById('school-user-email').textContent = user.email;
-      document.getElementById('school-role-badge').textContent = schoolCtx.role.toUpperCase();
+      document.getElementById('school-role-badge').textContent = statusLabel(schoolCtx.role);
       document.getElementById('school-account-name').textContent = schoolCtx.accountName;
       document.getElementById('school-pending-banner').classList.toggle('hidden', schoolCtx.accountStatus !== 'pending');
       document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !['admin', 'co_admin'].includes(schoolCtx.role)));
@@ -706,13 +948,13 @@
     const account_name = document.getElementById('ob-account-name').value.trim();
     const device_name = document.getElementById('ob-create-device').value.trim();
     const msg = document.getElementById('ob-create-msg');
-    if (!account_name || !device_name) { msg.className = 'msg err'; msg.textContent = 'Both fields are required.'; return; }
-    msg.className = 'msg muted'; msg.textContent = 'Creating…';
+    if (!account_name || !device_name) { msg.className = 'msg err'; msg.textContent = t('msg_both_fields_required'); return; }
+    msg.className = 'msg muted'; msg.textContent = t('msg_creating');
     const { data, error } = await supabase.functions.invoke('create-account', { body: { account_name, device_name } });
     if (error || data?.error) {
       msg.className = 'msg err'; msg.textContent = await readError(error, data);
     } else {
-      msg.className = 'msg ok'; msg.textContent = 'Account created! Loading your dashboard…';
+      msg.className = 'msg ok'; msg.textContent = t('msg_account_created');
       const { data: { user } } = await supabase.auth.getUser();
       await route(user);
     }
@@ -722,13 +964,13 @@
     const admin_email = document.getElementById('ob-admin-email').value.trim();
     const device_name = document.getElementById('ob-join-device').value.trim();
     const msg = document.getElementById('ob-join-msg');
-    if (!admin_email || !device_name) { msg.className = 'msg err'; msg.textContent = 'Both fields are required.'; return; }
-    msg.className = 'msg muted'; msg.textContent = 'Sending request…';
+    if (!admin_email || !device_name) { msg.className = 'msg err'; msg.textContent = t('msg_both_fields_required'); return; }
+    msg.className = 'msg muted'; msg.textContent = t('msg_sending_request');
     const { data, error } = await supabase.functions.invoke('signup-request', { body: { admin_email, device_name } });
     if (error || data?.error) {
       msg.className = 'msg err'; msg.textContent = await readError(error, data);
     } else {
-      msg.className = 'msg ok'; msg.textContent = 'Request sent (status: ' + data.status + '). Ask your admin for the code once approved.';
+      msg.className = 'msg ok'; msg.textContent = t('msg_request_sent', { status: data.status });
       pendingJoinDeviceId = data.device_id;
       document.getElementById('ob-verify-block').classList.remove('hidden');
     }
@@ -737,13 +979,13 @@
   document.getElementById('ob-verify-btn').addEventListener('click', async () => {
     const code = document.getElementById('ob-code').value.trim();
     const msg = document.getElementById('ob-verify-msg');
-    if (!pendingJoinDeviceId) { msg.className = 'msg err'; msg.textContent = 'Send a request first.'; return; }
-    msg.className = 'msg muted'; msg.textContent = 'Verifying…';
+    if (!pendingJoinDeviceId) { msg.className = 'msg err'; msg.textContent = t('msg_send_request_first'); return; }
+    msg.className = 'msg muted'; msg.textContent = t('msg_verifying');
     const { data, error } = await supabase.functions.invoke('verify-device-code', { body: { device_id: pendingJoinDeviceId, code } });
     if (error || data?.error) {
       msg.className = 'msg err'; msg.textContent = await readError(error, data);
     } else {
-      msg.className = 'msg ok'; msg.textContent = 'Approved! Loading your dashboard…';
+      msg.className = 'msg ok'; msg.textContent = t('msg_approved_loading');
       const { data: { user } } = await supabase.auth.getUser();
       await route(user);
     }
@@ -793,10 +1035,10 @@
 
   async function loadDevices() {
     const listEl = document.getElementById('devices-list');
-    listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    listEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
     const { data, error } = await supabase.from('devices').select('id, device_name, status').eq('account_id', schoolCtx.accountId).order('created_at', { ascending: false });
-    if (error) { listEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
-    if (!data.length) { listEl.innerHTML = '<div class="empty-note">No devices yet.</div>'; return; }
+    if (error) { listEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
+    if (!data.length) { listEl.innerHTML = `<div class="empty-note">${t('msg_no_devices')}</div>`; return; }
     listEl.innerHTML = '';
     data.forEach((d) => {
       const row = document.createElement('div');
@@ -809,26 +1051,26 @@
       btnRow.className = 'btn-row';
       const pill = document.createElement('span');
       pill.className = 'pill ' + d.status;
-      pill.textContent = d.status.toUpperCase();
+      pill.textContent = statusLabel(d.status);
       btnRow.appendChild(pill);
       if (d.status === 'pending') {
         const btn = document.createElement('button');
-        btn.className = 'btn btn-gold-sm'; btn.textContent = 'Approve';
+        btn.className = 'btn btn-gold-sm'; btn.textContent = t('btn_approve');
         btn.addEventListener('click', async () => {
           btn.textContent = '…';
           const { data: ad, error: ae } = await supabase.functions.invoke('approve-device', { body: { device_id: d.id } });
           if (ae || ad?.error) { main.innerHTML += `<div class="row-sub" style="color:var(--danger)">${await readError(ae, ad)}</div>`; }
-          else { main.innerHTML += `<div class="row-sub" style="color:var(--success)">Code: ${ad.code}</div>`; btn.remove(); }
+          else { main.innerHTML += `<div class="row-sub" style="color:var(--success)">${t('msg_code_prefix')} ${ad.code}</div>`; btn.remove(); }
         });
         btnRow.appendChild(btn);
       } else if (d.status === 'approved') {
         const btn = document.createElement('button');
-        btn.className = 'btn btn-danger-sm'; btn.textContent = 'Revoke';
+        btn.className = 'btn btn-danger-sm'; btn.textContent = t('btn_revoke');
         btn.addEventListener('click', async () => {
           btn.textContent = '…';
           const { data: rd, error: re } = await supabase.functions.invoke('revoke-device', { body: { device_id: d.id } });
           if (re || rd?.error) { main.innerHTML += `<div class="row-sub" style="color:var(--danger)">${await readError(re, rd)}</div>`; }
-          else { pill.textContent = 'REVOKED'; pill.className = 'pill revoked'; btn.remove(); }
+          else { pill.textContent = statusLabel('revoked'); pill.className = 'pill revoked'; btn.remove(); }
         });
         btnRow.appendChild(btn);
       }
@@ -839,17 +1081,17 @@
 
   async function loadAllowed() {
     const listEl = document.getElementById('allowed-list');
-    listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    listEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
     const { data, error } = await supabase.from('allowed_emails').select('id, email').eq('account_id', schoolCtx.accountId).order('created_at', { ascending: false });
-    if (error) { listEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
-    if (!data.length) { listEl.innerHTML = '<div class="empty-note">No allowed emails yet.</div>'; return; }
+    if (error) { listEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
+    if (!data.length) { listEl.innerHTML = `<div class="empty-note">${t('msg_no_allowed_emails')}</div>`; return; }
     listEl.innerHTML = '';
     data.forEach((row) => {
       const el = document.createElement('div');
       el.className = 'row';
       el.innerHTML = `<div class="row-title mono">${row.email}</div>`;
       const btn = document.createElement('button');
-      btn.className = 'btn btn-danger-sm'; btn.textContent = 'Remove';
+      btn.className = 'btn btn-danger-sm'; btn.textContent = t('btn_remove');
       btn.addEventListener('click', async () => {
         const { error: delErr } = await supabase.from('allowed_emails').delete().eq('id', row.id);
         if (!delErr) el.remove();
@@ -870,9 +1112,9 @@
 
   async function loadMembers() {
     const listEl = document.getElementById('members-list');
-    listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    listEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
     const { data, error } = await supabase.from('account_members').select('id, user_id, email, role').eq('account_id', schoolCtx.accountId).order('email');
-    if (error) { listEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    if (error) { listEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
     const { data: unlinkedTeachers } = await supabase.from('teachers').select('id, name').eq('account_id', schoolCtx.accountId).is('linked_user_id', null);
     listEl.innerHTML = '';
     data.forEach((m) => {
@@ -885,11 +1127,11 @@
       btnRow.className = 'btn-row';
       const pill = document.createElement('span');
       pill.className = 'pill ' + m.role;
-      pill.textContent = m.role.toUpperCase();
+      pill.textContent = statusLabel(m.role);
       btnRow.appendChild(pill);
       if (m.role === 'staff') {
         const promoteBtn = document.createElement('button');
-        promoteBtn.className = 'btn btn-gold-sm'; promoteBtn.textContent = 'Promote to co-admin';
+        promoteBtn.className = 'btn btn-gold-sm'; promoteBtn.textContent = t('btn_promote_co_admin');
         promoteBtn.addEventListener('click', async () => {
           const { error: upErr } = await supabase.from('account_members').update({ role: 'co_admin' }).eq('id', m.id);
           if (!upErr) loadMembers();
@@ -899,7 +1141,7 @@
         if (unlinkedTeachers && unlinkedTeachers.length) {
           const sel = document.createElement('select');
           sel.className = 'input-inline'; sel.style.maxWidth = '150px';
-          sel.innerHTML = '<option value="">Make teacher…</option>' + unlinkedTeachers.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+          sel.innerHTML = `<option value="">${t('opt_make_teacher')}</option>` + unlinkedTeachers.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
           sel.addEventListener('change', async () => {
             if (!sel.value) return;
             await supabase.from('teachers').update({ linked_user_id: m.user_id }).eq('id', sel.value);
@@ -916,17 +1158,17 @@
 
   async function loadRecovery() {
     const el = document.getElementById('recovery-current');
-    el.textContent = 'Loading…';
+    el.textContent = t('msg_loading');
     const { data, error } = await supabase.from('accounts').select('recovery_email').eq('id', schoolCtx.accountId).single();
-    if (error) { el.textContent = 'Error: ' + error.message; return; }
-    el.textContent = data.recovery_email ? ('Current: ' + data.recovery_email) : 'No recovery email set yet.';
+    if (error) { el.textContent = t('msg_error_prefix') + ' ' + error.message; return; }
+    el.textContent = data.recovery_email ? (t('msg_current_prefix') + ' ' + data.recovery_email) : t('msg_no_recovery_email');
   }
 
   document.getElementById('save-recovery-btn').addEventListener('click', async () => {
     const input = document.getElementById('recovery-email-input');
     const email = input.value.trim().toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email)) { alert('Please enter a valid email address.'); return; }
+    if (!email || !emailRegex.test(email)) { alert(t('msg_please_valid_email')); return; }
     const { error } = await supabase.from('accounts').update({ recovery_email: email }).eq('id', schoolCtx.accountId);
     if (!error) { input.value = ''; loadRecovery(); }
   });
@@ -936,9 +1178,9 @@
 
   async function loadPlatformAccounts() {
     const listEl = document.getElementById('accounts-list');
-    listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    listEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
     const { data: accounts, error } = await supabase.from('accounts').select('id,name,status,is_platform').order('created_at', { ascending: false });
-    if (error) { listEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    if (error) { listEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
 
     const ids = accounts.map(a => a.id);
     const { data: admins } = await supabase.from('account_members').select('account_id,email').eq('role', 'admin').in('account_id', ids);
@@ -953,25 +1195,25 @@
     accounts.forEach((a) => {
       const row = document.createElement('div');
       row.className = 'row';
-      row.innerHTML = `<div class="row-main"><div class="row-title">${a.name}</div><div class="row-sub">admin: ${adminMap[a.id] || '—'}</div></div>`;
+      row.innerHTML = `<div class="row-main"><div class="row-title">${a.name}</div><div class="row-sub">${t('label_admin_prefix')} ${adminMap[a.id] || '—'}</div></div>`;
       const btnRow = document.createElement('div');
       btnRow.className = 'btn-row';
       const pill = document.createElement('span');
       pill.className = 'pill ' + a.status;
-      pill.textContent = a.status.toUpperCase();
+      pill.textContent = statusLabel(a.status);
       btnRow.appendChild(pill);
 
       if (!a.is_platform) {
         if (a.status === 'pending') {
           const approveBtn = document.createElement('button');
-          approveBtn.className = 'btn btn-gold-sm'; approveBtn.textContent = 'Approve';
+          approveBtn.className = 'btn btn-gold-sm'; approveBtn.textContent = t('btn_approve');
           approveBtn.addEventListener('click', async () => {
             const { error: upErr } = await supabase.from('accounts').update({ status: 'active' }).eq('id', a.id);
             if (!upErr) loadPlatformAccounts();
           });
           btnRow.appendChild(approveBtn);
           const rejectBtn = document.createElement('button');
-          rejectBtn.className = 'btn btn-danger-sm'; rejectBtn.textContent = 'Reject';
+          rejectBtn.className = 'btn btn-danger-sm'; rejectBtn.textContent = t('btn_reject');
           rejectBtn.addEventListener('click', async () => {
             const { error: upErr } = await supabase.from('accounts').update({ status: 'suspended' }).eq('id', a.id);
             if (!upErr) loadPlatformAccounts();
@@ -979,7 +1221,7 @@
           btnRow.appendChild(rejectBtn);
         } else if (a.status === 'active') {
           const suspendBtn = document.createElement('button');
-          suspendBtn.className = 'btn btn-danger-sm'; suspendBtn.textContent = 'Suspend';
+          suspendBtn.className = 'btn btn-danger-sm'; suspendBtn.textContent = t('btn_suspend');
           suspendBtn.addEventListener('click', async () => {
             const { error: upErr } = await supabase.from('accounts').update({ status: 'suspended' }).eq('id', a.id);
             if (!upErr) loadPlatformAccounts();
@@ -987,7 +1229,7 @@
           btnRow.appendChild(suspendBtn);
         } else if (a.status === 'suspended') {
           const reactivateBtn = document.createElement('button');
-          reactivateBtn.className = 'btn btn-gold-sm'; reactivateBtn.textContent = 'Reactivate';
+          reactivateBtn.className = 'btn btn-gold-sm'; reactivateBtn.textContent = t('btn_reactivate');
           reactivateBtn.addEventListener('click', async () => {
             const { error: upErr } = await supabase.from('accounts').update({ status: 'active' }).eq('id', a.id);
             if (!upErr) loadPlatformAccounts();
@@ -1007,9 +1249,9 @@
 
   async function loadStudents() {
     const listEl = document.getElementById('students-list');
-    listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    listEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
     const { data, error } = await supabase.from('students').select('*').eq('account_id', schoolCtx.accountId).order('name');
-    if (error) { listEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    if (error) { listEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
     allStudents = data || [];
 
     const courseSel = document.getElementById('student-course-filter');
@@ -1020,10 +1262,10 @@
     const grades = [...new Set(allStudents.map(s => s.grade).filter(Boolean))];
     const turmas = [...new Set(allStudents.map(s => s.turma).filter(Boolean))];
     const rooms = [...new Set(allStudents.map(s => s.room).filter(Boolean))];
-    courseSel.innerHTML = '<option value="">All courses</option>' + courses.map(c => `<option value="${c}">${c}</option>`).join('');
-    gradeSel.innerHTML = '<option value="">All grades</option>' + grades.map(g => `<option value="${g}">${g}</option>`).join('');
-    turmaSel.innerHTML = '<option value="">All turmas</option>' + turmas.map(t => `<option value="${t}">Turma ${t}</option>`).join('');
-    roomSel.innerHTML = '<option value="">All rooms</option>' + rooms.map(r => `<option value="${r}">${r}</option>`).join('');
+    courseSel.innerHTML = `<option value="">${t('filter_all_courses')}</option>` + courses.map(c => `<option value="${c}">${c}</option>`).join('');
+    gradeSel.innerHTML = `<option value="">${t('filter_all_grades')}</option>` + grades.map(g => `<option value="${g}">${g}</option>`).join('');
+    turmaSel.innerHTML = `<option value="">${t('filter_all_turmas')}</option>` + turmas.map(tm => `<option value="${tm}">${t('label_turma')} ${tm}</option>`).join('');
+    roomSel.innerHTML = `<option value="">${t('filter_all_rooms')}</option>` + rooms.map(r => `<option value="${r}">${r}</option>`).join('');
 
     renderStudents();
   }
@@ -1047,13 +1289,13 @@
       return true;
     });
 
-    if (filtered.length === 0) { listEl.innerHTML = '<div class="empty-note">No students found.</div>'; return; }
+    if (filtered.length === 0) { listEl.innerHTML = `<div class="empty-note">${t('msg_no_students_found')}</div>`; return; }
     listEl.innerHTML = '';
     filtered.forEach((s) => {
       const row = document.createElement('div');
       row.className = 'row';
       row.style.cursor = 'pointer';
-      row.innerHTML = `<div class="row-main"><div class="row-title">${s.name}</div><div class="row-sub">#${s.student_number} · ${s.course} · ${s.grade}${s.turma} · ${s.room || '—'} · ${s.shift || '—'}</div></div>`;
+      row.innerHTML = `<div class="row-main"><div class="row-title">${s.name}</div><div class="row-sub">#${s.student_number} · ${s.course} · ${s.grade}${s.turma} · ${s.room || '—'} · ${shiftLabel(s.shift)}</div></div>`;
       row.addEventListener('click', () => openStudentPanel(s));
       listEl.appendChild(row);
     });
@@ -1084,7 +1326,7 @@
     const { data } = await supabase.from('debt_events').select('amount_kz').eq('student_id', studentId);
     const total = (data || []).reduce((a, e) => a + Number(e.amount_kz), 0);
     const el = document.getElementById('sp-debt-balance');
-    el.textContent = total > 0 ? `Owes ${total.toLocaleString()} Kz` : (total < 0 ? `Credit ${Math.abs(total).toLocaleString()} Kz` : 'No balance owed');
+    el.textContent = total > 0 ? t('msg_owes', { amount: total.toLocaleString() }) : (total < 0 ? t('msg_credit', { amount: Math.abs(total).toLocaleString() }) : t('msg_no_balance_owed'));
     el.style.color = total > 0 ? 'var(--warn)' : (total < 0 ? 'var(--success)' : 'var(--muted)');
     return total;
   }
@@ -1093,7 +1335,7 @@
     currentStudentId = student.id;
     document.getElementById('sp-number').textContent = '#' + student.student_number;
     document.getElementById('sp-name').textContent = student.name;
-    document.getElementById('sp-meta').textContent = `${student.course} · ${student.grade}${student.turma} · ${student.room || '—'} · ${student.shift || '—'}`;
+    document.getElementById('sp-meta').textContent = `${student.course} · ${student.grade}${student.turma} · ${student.room || '—'} · ${shiftLabel(student.shift)}`;
     document.getElementById('student-panel-overlay').classList.remove('hidden');
     document.getElementById('sp-note-input').value = '';
 
@@ -1117,10 +1359,10 @@
 
   async function loadNotes(studentId) {
     const el = document.getElementById('sp-notes');
-    el.innerHTML = '<div class="empty-note">Loading…</div>';
+    el.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
     const { data, error } = await supabase.from('student_notes').select('*').eq('student_id', studentId).order('created_at', { ascending: false });
-    if (error) { el.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
-    if (!data.length) { el.innerHTML = '<div class="empty-note">No notes yet.</div>'; return; }
+    if (error) { el.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
+    if (!data.length) { el.innerHTML = `<div class="empty-note">${t('msg_no_notes')}</div>`; return; }
     el.innerHTML = data.map(n => `<div style="border-left:2px solid var(--gold);padding-left:10px;margin-bottom:10px;"><div style="font-size:12.5px;">${n.text}</div><div class="row-sub" style="margin-top:2px;">${n.author_email || ''}</div></div>`).join('');
   }
 
@@ -1136,17 +1378,17 @@
 
   async function loadGrades(studentId) {
     const el = document.getElementById('sp-grades');
-    el.innerHTML = '<div class="empty-note">Loading…</div>';
+    el.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
     const { data, error } = await supabase.from('grades').select('*').eq('student_id', studentId).order('created_at', { ascending: false });
-    if (error) { el.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
-    el.innerHTML = data.length ? data.map(g => `<div class="row" style="padding:8px 0;"><span>${g.subject} · ${g.term}</span><strong>${g.value}</strong></div>`).join('') : '<div class="empty-note">No grades yet.</div>';
+    if (error) { el.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
+    el.innerHTML = data.length ? data.map(g => `<div class="row" style="padding:8px 0;"><span>${g.subject} · ${g.term}</span><strong>${g.value}</strong></div>`).join('') : `<div class="empty-note">${t('msg_no_grades')}</div>`;
 
     const student = allStudents.find(s => s.id === studentId);
     const subjectSel = document.getElementById('sp-grade-subject');
     if (student) {
       const { data: entries } = await supabase.from('timetable_entries').select('subject').eq('account_id', schoolCtx.accountId).eq('course', student.course).eq('grade', student.grade).eq('turma', student.turma);
       const subjects = [...new Set((entries || []).map(e => e.subject).filter(Boolean))];
-      subjectSel.innerHTML = '<option value="">Subject…</option>' + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+      subjectSel.innerHTML = `<option value="">${t('opt_subject_placeholder')}</option>` + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
     }
 
     const canEdit = ['admin', 'co_admin'].includes(schoolCtx.role) ||
@@ -1160,7 +1402,7 @@
     const term = document.getElementById('sp-grade-term').value;
     const value = Number(document.getElementById('sp-grade-value').value);
     if (!subject || !term || document.getElementById('sp-grade-value').value === '' || !currentStudentId) return;
-    if (value < 0 || value > 20) { alert('Grade must be between 0 and 20.'); return; }
+    if (value < 0 || value > 20) { alert(t('msg_grade_range')); return; }
     const { error } = await supabase.from('grades').insert({
       account_id: schoolCtx.accountId, student_id: currentStudentId, subject, term, value, created_by: currentUser.id,
     });
@@ -1173,7 +1415,7 @@
   // ---------- ADD/EDIT STUDENT ----------
   document.getElementById('add-student-btn').addEventListener('click', () => {
     editingStudentId = null;
-    document.getElementById('sm-title').textContent = 'Add student';
+    document.getElementById('sm-title').textContent = t('modal_title_add_student');
     ['sm-number', 'sm-name', 'sm-turma'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('sm-course').selectedIndex = 0;
     document.getElementById('sm-grade').selectedIndex = 0;
@@ -1196,7 +1438,7 @@
       shift: document.getElementById('sm-shift').value.trim(),
     };
     const msg = document.getElementById('sm-msg');
-    if (!payload.student_number || !payload.name) { msg.className = 'msg err'; msg.textContent = 'Number and name are required.'; return; }
+    if (!payload.student_number || !payload.name) { msg.className = 'msg err'; msg.textContent = t('msg_number_name_required'); return; }
     const { error } = editingStudentId
       ? await supabase.from('students').update(payload).eq('id', editingStudentId)
       : await supabase.from('students').insert(payload);
@@ -1211,26 +1453,26 @@
 
   async function loadTeachers() {
     const listEl = document.getElementById('teachers-list');
-    listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    listEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
     const { data, error } = await supabase.from('teachers').select('*').eq('account_id', schoolCtx.accountId).order('name');
-    if (error) { listEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    if (error) { listEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
     allTeachers = data || [];
-    if (!allTeachers.length) { listEl.innerHTML = '<div class="empty-note">No teachers yet.</div>'; return; }
+    if (!allTeachers.length) { listEl.innerHTML = `<div class="empty-note">${t('msg_no_teachers')}</div>`; return; }
     listEl.innerHTML = '';
-    allTeachers.forEach((t) => {
+    allTeachers.forEach((teacher) => {
       const row = document.createElement('div');
       row.className = 'row';
-      row.innerHTML = `<div class="row-main"><div class="row-title">${t.name}</div><div class="row-sub">${t.subjects || '—'} · ${t.phone || '—'}</div></div>`;
+      row.innerHTML = `<div class="row-main"><div class="row-title">${teacher.name}</div><div class="row-sub">${teacher.subjects || '—'} · ${teacher.phone || '—'}</div></div>`;
       const btnRow = document.createElement('div');
       btnRow.className = 'btn-row';
       const pill = document.createElement('span');
-      pill.className = 'pill ' + (t.linked_user_id ? 'active' : 'pending');
-      pill.textContent = t.linked_user_id ? 'LINKED' : 'UNLINKED';
+      pill.className = 'pill ' + (teacher.linked_user_id ? 'active' : 'pending');
+      pill.textContent = statusLabel(teacher.linked_user_id ? 'linked' : 'unlinked');
       btnRow.appendChild(pill);
       if (['admin', 'co_admin'].includes(schoolCtx.role)) {
         const editBtn = document.createElement('button');
-        editBtn.className = 'btn'; editBtn.textContent = 'Edit';
-        editBtn.addEventListener('click', () => openTeacherModal(t));
+        editBtn.className = 'btn'; editBtn.textContent = t('btn_edit');
+        editBtn.addEventListener('click', () => openTeacherModal(teacher));
         btnRow.appendChild(editBtn);
       }
       row.appendChild(btnRow);
@@ -1257,7 +1499,7 @@
       phone: document.getElementById('tm-phone').value.trim(),
     };
     const msg = document.getElementById('tm-msg');
-    if (!payload.name) { msg.className = 'msg err'; msg.textContent = 'Name is required.'; return; }
+    if (!payload.name) { msg.className = 'msg err'; msg.textContent = t('msg_name_required'); return; }
     const { error } = editingTeacherId
       ? await supabase.from('teachers').update(payload).eq('id', editingTeacherId)
       : await supabase.from('teachers').insert(payload);
@@ -1281,7 +1523,7 @@
       if (!seen.has(key)) { seen.add(key); ttTurmas.push({ course: s.course, grade: s.grade, turma: s.turma, key }); }
     });
     const sel = document.getElementById('tt-turma-select');
-    sel.innerHTML = ttTurmas.map(t => `<option value="${t.key}">${t.course} ${t.grade}${t.turma}</option>`).join('') || '<option value="">No classes yet — add students first</option>';
+    sel.innerHTML = ttTurmas.map(cls => `<option value="${cls.key}">${cls.course} ${cls.grade}${cls.turma}</option>`).join('') || `<option value="">${t('msg_no_classes_add_students')}</option>`;
 
     if (!allTeachers.length) {
       const { data } = await supabase.from('teachers').select('*').eq('account_id', schoolCtx.accountId).order('name');
@@ -1295,22 +1537,22 @@
   async function renderTimetableGrid() {
     const gridEl = document.getElementById('tt-grid');
     const key = document.getElementById('tt-turma-select').value;
-    if (!key) { gridEl.innerHTML = '<div class="empty-note">No classes yet — add students first.</div>'; return; }
-    gridEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    if (!key) { gridEl.innerHTML = `<div class="empty-note">${t('msg_no_classes_add_students')}</div>`; return; }
+    gridEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
     const [course, grade, turma] = key.split('|');
     const { data, error } = await supabase.from('timetable_entries').select('*').eq('account_id', schoolCtx.accountId).eq('course', course).eq('grade', grade).eq('turma', turma);
-    if (error) { gridEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    if (error) { gridEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
     ttEntries = data || [];
 
     let html = '<table style="width:100%;border-collapse:collapse;">';
-    html += '<tr><td></td>' + DAYS.map(d => `<td class="row-sub" style="padding:8px;text-align:center;">${d.slice(0, 3)}</td>`).join('') + '</tr>';
+    html += '<tr><td></td>' + DAYS.map(d => `<td class="row-sub" style="padding:8px;text-align:center;">${dayAbbr(d)}</td>`).join('') + '</tr>';
     PERIODS.forEach(p => {
-      html += `<tr><td class="row-sub mono" style="padding:8px;white-space:nowrap;">${p}</td>`;
+      html += `<tr><td class="row-sub mono" style="padding:8px;white-space:nowrap;">${shiftLabel(p)}</td>`;
       DAYS.forEach(d => {
         const entry = ttEntries.find(e => e.day === d && e.period === p);
-        const teacherName = entry ? (allTeachers.find(t => t.id === entry.teacher_id)?.name || '—') : '';
+        const teacherName = entry ? (allTeachers.find(tc => tc.id === entry.teacher_id)?.name || '—') : '';
         html += `<td class="tt-cell" data-day="${d}" data-period="${p}" style="border:1px solid var(--line);padding:8px;cursor:pointer;vertical-align:top;min-width:100px;">
-          ${entry ? `<div style="font-size:12px;font-weight:600;">${entry.subject}</div><div class="row-sub">${teacherName}</div><div class="row-sub" style="color:var(--gold);">${entry.room || ''}</div>` : '<div class="row-sub" style="font-style:italic;">Free</div>'}
+          ${entry ? `<div style="font-size:12px;font-weight:600;">${entry.subject}</div><div class="row-sub">${teacherName}</div><div class="row-sub" style="color:var(--gold);">${entry.room || ''}</div>` : `<div class="row-sub" style="font-style:italic;">${t('label_free')}</div>`}
         </td>`;
       });
       html += '</tr>';
@@ -1328,11 +1570,11 @@
     ttEditingDay = day; ttEditingPeriod = period;
     const key = document.getElementById('tt-turma-select').value;
     const entry = ttEntries.find(e => e.day === day && e.period === period);
-    document.getElementById('tt-modal-title').textContent = `${key.split('|').slice(1).join('')} · ${day} · ${period}`;
+    document.getElementById('tt-modal-title').textContent = `${key.split('|').slice(1).join('')} · ${dayLabel(day)} · ${shiftLabel(period)}`;
     document.getElementById('tt-subject').value = entry ? entry.subject : '';
     document.getElementById('tt-room').value = entry ? (entry.room || '') : '';
     const teacherSel = document.getElementById('tt-teacher');
-    teacherSel.innerHTML = '<option value="">— none —</option>' + allTeachers.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+    teacherSel.innerHTML = `<option value="">${t('opt_none')}</option>` + allTeachers.map(tc => `<option value="${tc.id}">${tc.name}</option>`).join('');
     teacherSel.value = entry ? (entry.teacher_id || '') : '';
     document.getElementById('tt-msg').textContent = '';
     document.getElementById('tt-modal-overlay').classList.remove('hidden');
@@ -1356,7 +1598,7 @@
     if (error) {
       if (error.message.includes('unique_teacher_slot')) {
         msg.className = 'msg err';
-        msg.textContent = 'This teacher already has a class at this exact day/period. Split professors — pick a different teacher for this class, or reassign the other one first.';
+        msg.textContent = t('msg_teacher_clash');
       } else {
         msg.className = 'msg err'; msg.textContent = error.message;
       }
@@ -1376,23 +1618,23 @@
   // ---------- DEBTS ----------
   async function loadDebts() {
     const listEl = document.getElementById('debts-list');
-    listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    listEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
     const { data: events, error } = await supabase.from('debt_events').select('student_id, amount_kz').eq('account_id', schoolCtx.accountId);
-    if (error) { listEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    if (error) { listEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
     const totals = {};
     (events || []).forEach(e => { totals[e.student_id] = (totals[e.student_id] || 0) + Number(e.amount_kz); });
 
     if (!allStudents.length) { const { data } = await supabase.from('students').select('*').eq('account_id', schoolCtx.accountId); allStudents = data || []; }
 
     const debtors = allStudents.filter(s => (totals[s.id] || 0) > 0).sort((a, b) => (totals[b.id] || 0) - (totals[a.id] || 0));
-    if (!debtors.length) { listEl.innerHTML = '<div class="empty-note">No students owe money right now.</div>'; return; }
+    if (!debtors.length) { listEl.innerHTML = `<div class="empty-note">${t('msg_no_students_owe')}</div>`; return; }
     listEl.innerHTML = '';
     debtors.forEach((s) => {
       const row = document.createElement('div');
       row.className = 'row';
       row.innerHTML = `<div class="row-main"><div class="row-title">${s.name}</div><div class="row-sub">#${s.student_number} · ${s.course} · ${s.grade}${s.turma}</div></div><span class="pill pending mono">${totals[s.id].toLocaleString()} Kz</span>`;
       const btn = document.createElement('button');
-      btn.className = 'btn btn-gold-sm'; btn.textContent = 'Add entry';
+      btn.className = 'btn btn-gold-sm'; btn.textContent = t('btn_add_entry');
       btn.addEventListener('click', () => openLedgerModal('debt', s));
       row.appendChild(btn);
       listEl.appendChild(row);
@@ -1402,20 +1644,20 @@
   // ---------- TEST PAPERS ----------
   async function loadFolhas() {
     const listEl = document.getElementById('folhas-list');
-    listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    listEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
     const { data: events, error } = await supabase.from('folha_events').select('student_id, delta').eq('account_id', schoolCtx.accountId);
-    if (error) { listEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    if (error) { listEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
     const totals = {};
     (events || []).forEach(e => { totals[e.student_id] = (totals[e.student_id] || 0) + Number(e.delta); });
 
     if (!allStudents.length) { const { data } = await supabase.from('students').select('*').eq('account_id', schoolCtx.accountId); allStudents = data || []; }
-    if (!allStudents.length) { listEl.innerHTML = '<div class="empty-note">No students yet.</div>'; return; }
+    if (!allStudents.length) { listEl.innerHTML = `<div class="empty-note">${t('msg_no_students_yet')}</div>`; return; }
     listEl.innerHTML = '';
     allStudents.forEach((s) => {
       const balance = totals[s.id] || 0;
       const row = document.createElement('div');
       row.className = 'row';
-      row.innerHTML = `<div class="row-main"><div class="row-title">${s.name}</div><div class="row-sub">#${s.student_number}</div></div><span class="pill ${balance <= 3 ? 'revoked' : 'active'} mono">${balance} left</span>`;
+      row.innerHTML = `<div class="row-main"><div class="row-title">${s.name}</div><div class="row-sub">#${s.student_number}</div></div><span class="pill ${balance <= 3 ? 'revoked' : 'active'} mono">${balance} ${t('unit_left')}</span>`;
       const btnRow = document.createElement('div'); btnRow.className = 'btn-row';
       const sellBtn = document.createElement('button'); sellBtn.className = 'btn btn-gold-sm'; sellBtn.textContent = '+10';
       sellBtn.addEventListener('click', async () => { await supabase.from('folha_events').insert({ account_id: schoolCtx.accountId, student_id: s.id, delta: 10, created_by: currentUser.id }); loadFolhas(); });
@@ -1431,8 +1673,8 @@
   let ledgerMode = null, ledgerStudent = null;
   function openLedgerModal(mode, student) {
     ledgerMode = mode; ledgerStudent = student;
-    document.getElementById('ledger-modal-title').textContent = `${student.name} — add debt entry`;
-    document.getElementById('ledger-amount-label').textContent = 'Amount (Kz) — negative for a payment';
+    document.getElementById('ledger-modal-title').textContent = `${student.name} — ${t('btn_add_entry').toLowerCase()}`;
+    document.getElementById('ledger-amount-label').textContent = t('label_amount_kz_signed');
     document.getElementById('ledger-amount').value = '';
     document.getElementById('ledger-desc').value = '';
     document.getElementById('ledger-msg').textContent = '';
@@ -1443,7 +1685,7 @@
     const amount = Number(document.getElementById('ledger-amount').value);
     const desc = document.getElementById('ledger-desc').value.trim();
     const msg = document.getElementById('ledger-msg');
-    if (!amount) { msg.className = 'msg err'; msg.textContent = 'Enter an amount.'; return; }
+    if (!amount) { msg.className = 'msg err'; msg.textContent = t('msg_enter_amount'); return; }
     const { error } = await supabase.from('debt_events').insert({
       account_id: schoolCtx.accountId, student_id: ledgerStudent.id, amount_kz: amount, description: desc, created_by: currentUser.id,
     });
@@ -1455,12 +1697,12 @@
   // ---------- CALENDAR ----------
   async function loadCalendar() {
     const listEl = document.getElementById('calendar-list');
-    listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+    listEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
     const { data, error } = await supabase.from('calendar_events').select('*').eq('account_id', schoolCtx.accountId).order('event_date');
-    if (error) { listEl.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
-    if (!data.length) { listEl.innerHTML = '<div class="empty-note">No events yet.</div>'; return; }
+    if (error) { listEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
+    if (!data.length) { listEl.innerHTML = `<div class="empty-note">${t('msg_no_events')}</div>`; return; }
     const typeColor = { term: 'active', holiday: 'admin', exam: 'revoked' };
-    listEl.innerHTML = data.map(e => `<div class="row"><div class="row-main"><div class="row-title">${e.title}</div><div class="row-sub">${e.event_date}</div></div><span class="pill ${typeColor[e.type]}">${e.type.toUpperCase()}</span></div>`).join('');
+    listEl.innerHTML = data.map(e => `<div class="row"><div class="row-main"><div class="row-title">${e.title}</div><div class="row-sub">${e.event_date}</div></div><span class="pill ${typeColor[e.type]}">${t('type_' + e.type).toUpperCase()}</span></div>`).join('');
   }
   document.getElementById('cal-add-btn').addEventListener('click', async () => {
     const event_date = document.getElementById('cal-date').value;
@@ -1474,25 +1716,25 @@
   // ---------- PRICING ----------
   async function loadPricing() {
     const el = document.getElementById('pricing-card');
-    el.innerHTML = '<div class="empty-note">Loading…</div>';
+    el.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
     const { data, error } = await supabase.from('pricing').select('*').eq('account_id', schoolCtx.accountId).maybeSingle();
-    if (error) { el.innerHTML = `<div class="empty-note">Error: ${error.message}</div>`; return; }
+    if (error) { el.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
     const locked = !['admin', 'co_admin'].includes(schoolCtx.role);
     const fields = [
-      ['inscricao', 'Registration'], ['matricula', 'Enrollment fee'], ['confirmacao', 'Enrollment confirmation'],
-      ['mensalidade_10', 'Monthly — 10th grade'], ['mensalidade_11', 'Monthly — 11th grade'], ['mensalidade_12_13', 'Monthly — 12th/13th grade'],
-      ['folha_unit', 'Test paper (per sheet)'], ['certificado', 'Certificate issuance'],
+      ['inscricao', 'price_inscricao'], ['matricula', 'price_matricula'], ['confirmacao', 'price_confirmacao'],
+      ['mensalidade_10', 'price_mensalidade_10'], ['mensalidade_11', 'price_mensalidade_11'], ['mensalidade_12_13', 'price_mensalidade_12_13'],
+      ['folha_unit', 'price_folha_unit'], ['certificado', 'price_certificado'],
     ];
-    el.innerHTML = fields.map(([key, label]) => `
+    el.innerHTML = fields.map(([key, labelKey]) => `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);">
-        <span style="font-size:13px;">${label}</span>
+        <span style="font-size:13px;">${t(labelKey)}</span>
         <div style="display:flex;align-items:center;gap:6px;">
           <input type="number" class="input-inline mono" data-key="${key}" value="${data ? data[key] : 0}" ${locked ? 'disabled' : ''} style="width:100px;text-align:right;" />
           <span class="row-sub">Kz</span>
         </div>
       </div>`).join('') + (locked
-        ? '<div class="msg muted" style="margin-top:12px;">Only admins/co-admins can edit pricing.</div>'
-        : '<button class="btn btn-gold-sm" id="pricing-save-btn" style="width:100%;justify-content:center;margin-top:14px;">Save</button>');
+        ? `<div class="msg muted" style="margin-top:12px;">${t('msg_pricing_locked')}</div>`
+        : `<button class="btn btn-gold-sm" id="pricing-save-btn" style="width:100%;justify-content:center;margin-top:14px;">${t('btn_save')}</button>`);
 
     if (!locked) {
       document.getElementById('pricing-save-btn').addEventListener('click', async () => {
