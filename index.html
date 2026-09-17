@@ -83,6 +83,11 @@
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
   .row { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); gap: 10px; }
   .row:last-child { border-bottom: none; }
+  .fee-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; row-gap: 8px; padding: 14px 18px; border-bottom: 1px solid var(--line); gap: 10px; }
+  .fee-row:last-child { border-bottom: none; }
+  .fee-row > .pill, .fee-row > button { flex-shrink: 0; }
+  .fee-row-sub { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 0 18px 14px; border-bottom: 1px solid var(--line); }
+  .fee-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--danger); margin-left: 6px; flex-shrink: 0; }
   .row-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
   .row-title { font-size: 13.5px; font-weight: 500; }
   .row-sub { font-size: 11.5px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
@@ -237,6 +242,12 @@
       <div class="view" id="s-view-timetable">
         <div class="toolbar">
           <select class="input-inline" id="tt-turma-select" style="max-width:260px;"></select>
+          <select class="input-inline hidden" id="tt-room-select" style="max-width:200px;"></select>
+          <select class="input-inline hidden" id="tt-room-shift-select" style="max-width:160px;">
+            <option value="morning" data-i18n="shift_morning">Morning</option>
+            <option value="afternoon" data-i18n="shift_afternoon">Afternoon</option>
+          </select>
+          <button class="btn admin-only" id="tt-mode-toggle-btn" style="margin-left:auto;"></button>
         </div>
         <div class="card" id="tt-grid"><div class="empty-note">Loading…</div></div>
       </div>
@@ -248,6 +259,13 @@
 
       <div class="view" id="s-view-folhas">
         <div class="section-label" data-i18n="section_folha_balances">Test paper balances</div>
+        <div class="toolbar">
+          <input class="input-inline" id="folha-search" placeholder="Search by name or number…" data-i18n-placeholder="ph_search_students" style="flex:2;" />
+          <select class="input-inline" id="folha-sort" style="max-width:180px;">
+            <option value="name" data-i18n="sort_by_name">Sort by name</option>
+            <option value="added" data-i18n="sort_by_added">Sort by time added</option>
+          </select>
+        </div>
         <div class="card" id="folhas-list"><div class="empty-note">Loading…</div></div>
       </div>
 
@@ -531,6 +549,12 @@
       btn_confirm_payment: "Confirm payment",
       section_monthly_fees: "Monthly fees",
       msg_other_entries: "Other entries (legacy)",
+      sort_by_name: "Sort by name",
+      sort_by_added: "Sort by time added",
+      btn_view_by_room: "View by room",
+      btn_view_by_turma: "View by class",
+      label_turma_class: "Class",
+      msg_room_clash: "This room is already booked for a different class at this exact day/period.",
     },
     pt: {
       btn_add: "Adicionar",
@@ -725,6 +749,12 @@
       btn_confirm_payment: "Confirmar pagamento",
       section_monthly_fees: "Mensalidades",
       msg_other_entries: "Outros lançamentos (antigos)",
+      sort_by_name: "Ordenar por nome",
+      sort_by_added: "Ordenar por data de adição",
+      btn_view_by_room: "Ver por sala",
+      btn_view_by_turma: "Ver por turma",
+      label_turma_class: "Turma",
+      msg_room_clash: "Esta sala já está reservada para outra turma exactamente neste dia/período.",
     },
   };
 
@@ -1328,12 +1358,31 @@
   let currentStudentId = null;
   let editingStudentId = null;
 
+  let studentsUnpaidLastMonth = new Set();
+
   async function loadStudents() {
     const listEl = document.getElementById('students-list');
     listEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
     const { data, error } = await supabase.from('students').select('*').eq('account_id', schoolCtx.accountId).order('name');
     if (error) { listEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
     allStudents = data || [];
+
+    // Flag students who haven't paid mensalidade for the most recently started month,
+    // so a red dot can call them out in a long list.
+    studentsUnpaidLastMonth = new Set();
+    const startedMonths = academicYearMonths().filter(m => monthHasStarted(m.key));
+    const lastMonth = startedMonths[startedMonths.length - 1];
+    if (lastMonth && allStudents.length) {
+      const { data: events } = await supabase.from('debt_events').select('student_id, amount_kz')
+        .eq('account_id', schoolCtx.accountId).eq('description', `PAY:mensalidade:${lastMonth.key}`);
+      const pricing = await getPricing();
+      const paidByStudent = {};
+      (events || []).forEach(e => { paidByStudent[e.student_id] = (paidByStudent[e.student_id] || 0) + Number(e.amount_kz); });
+      allStudents.forEach(s => {
+        const due = gradeMensalidade(s.grade, pricing);
+        if (due > 0 && (paidByStudent[s.id] || 0) < due) studentsUnpaidLastMonth.add(s.id);
+      });
+    }
 
     const courseSel = document.getElementById('student-course-filter');
     const gradeSel = document.getElementById('student-grade-filter');
@@ -1376,7 +1425,8 @@
       const row = document.createElement('div');
       row.className = 'row';
       row.style.cursor = 'pointer';
-      row.innerHTML = `<div class="row-main"><div class="row-title">${s.name}</div><div class="row-sub">#${s.student_number} · ${s.course} · ${s.grade}${s.turma} · ${s.room || '—'} · ${shiftLabel(s.shift)}</div></div>`;
+      const dot = studentsUnpaidLastMonth.has(s.id) ? `<span class="fee-dot" title="${t('status_owed')}"></span>` : '';
+      row.innerHTML = `<div class="row-main"><div class="row-title">${s.name}${dot}</div><div class="row-sub">#${s.student_number} · ${s.course} · ${s.grade}${s.turma} · ${s.room || '—'} · ${shiftLabel(s.shift)}</div></div>`;
       row.addEventListener('click', () => openStudentPanel(s));
       listEl.appendChild(row);
     });
@@ -1407,14 +1457,14 @@
       ? `<span class="pill active mono">${t('status_paid')} · ${formatKz(paidAmount)} Kz</span>`
       : `<span class="pill pending mono">${t('status_owed')}${paidAmount > 0 ? ' · ' + formatKz(paidAmount) + ' Kz' : ''}</span>`;
     const isOpen = debtOpenKey === key;
-    let row = `<div class="row" style="align-items:center;">
+    let row = `<div class="fee-row">
       <div class="row-main"><div class="row-title" style="font-size:13px;">${label}</div></div>
       ${statusPill}
-      ${!isOpen ? `<button class="btn" data-pay-key="${key}" style="margin-left:8px;">${isPaid ? t('btn_add_payment') : t('btn_pay')}</button>` : ''}
+      ${!isOpen ? `<button class="btn" data-pay-key="${key}">${isPaid ? t('btn_add_payment') : t('btn_pay')}</button>` : ''}
     </div>`;
     if (isOpen) {
       const defaultAmt = Math.max(dueAmount - paidAmount, 0) || dueAmount || 0;
-      row += `<div class="row" style="gap:6px;padding-top:0;padding-bottom:14px;flex-wrap:wrap;">
+      row += `<div class="fee-row-sub">
         <button class="btn" data-step="-500" data-key="${key}">−500</button>
         <input class="input-inline mono" data-amount-key="${key}" style="max-width:110px;text-align:right;" value="${formatKz(defaultAmt)}" inputmode="numeric" />
         <button class="btn" data-step="500" data-key="${key}">+500</button>
@@ -1652,8 +1702,18 @@
   // ---------- TIMETABLE ----------
   const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const PERIODS = ['morning', 'afternoon'];
+  const ALL_ROOMS = ['Sala 1', 'Sala 2', 'Sala 3', 'Sala 4', 'Sala 5', 'Sala 6', 'Lab. Informática', 'Lab. Eletrónica', 'Lab. Telecom'];
   let ttTurmas = [];
   let ttEntries = [];
+  let ttMode = 'turma'; // 'turma' | 'room' — room mode is admin/co-admin only
+
+  function updateTtModeUI() {
+    const isRoom = ttMode === 'room';
+    document.getElementById('tt-turma-select').classList.toggle('hidden', isRoom);
+    document.getElementById('tt-room-select').classList.toggle('hidden', !isRoom);
+    document.getElementById('tt-room-shift-select').classList.toggle('hidden', !isRoom);
+    document.getElementById('tt-mode-toggle-btn').textContent = isRoom ? t('btn_view_by_turma') : t('btn_view_by_room');
+  }
 
   async function loadTimetable() {
     const { data: students } = await supabase.from('students').select('course, grade, turma, shift, room').eq('account_id', schoolCtx.accountId);
@@ -1681,16 +1741,33 @@
     const sel = document.getElementById('tt-turma-select');
     sel.innerHTML = ttTurmas.map(cls => `<option value="${cls.key}">${cls.course} ${cls.grade}${cls.turma}</option>`).join('') || `<option value="">${t('msg_no_classes_add_students')}</option>`;
 
+    const roomSel = document.getElementById('tt-room-select');
+    if (!roomSel.options.length) roomSel.innerHTML = ALL_ROOMS.map(r => `<option value="${r}">${r}</option>`).join('');
+
     if (!allTeachers.length) {
       const { data } = await supabase.from('teachers').select('*').eq('account_id', schoolCtx.accountId).order('name');
       allTeachers = data || [];
     }
 
+    // Room-mode scheduling is restricted to admins/co-admins, so reset to turma mode
+    // for anyone else (e.g. a teacher whose role changed, or on first load).
+    if (!['admin', 'co_admin'].includes(schoolCtx.role)) ttMode = 'turma';
+    updateTtModeUI();
+
     await renderTimetableGrid();
   }
   document.getElementById('tt-turma-select').addEventListener('change', renderTimetableGrid);
+  document.getElementById('tt-room-select').addEventListener('change', renderTimetableGrid);
+  document.getElementById('tt-room-shift-select').addEventListener('change', renderTimetableGrid);
+  document.getElementById('tt-mode-toggle-btn').addEventListener('click', () => {
+    ttMode = ttMode === 'turma' ? 'room' : 'turma';
+    updateTtModeUI();
+    renderTimetableGrid();
+  });
 
   async function renderTimetableGrid() {
+    if (ttMode === 'room') return renderRoomGrid();
+
     const gridEl = document.getElementById('tt-grid');
     const key = document.getElementById('tt-turma-select').value;
     if (!key) { gridEl.innerHTML = `<div class="empty-note">${t('msg_no_classes_add_students')}</div>`; return; }
@@ -1731,12 +1808,62 @@
     });
   }
 
-  let ttEditingDay = null, ttEditingPeriod = null;
-  function openTimetableModal(day, period) {
+  // Room-first scheduling: pick a Sala + Turno, then assign a class to each weekday
+  // (Monday–Saturday) — this is how labs shared across turmas actually get booked,
+  // and covers the "select room and period first" workflow admins asked for.
+  async function renderRoomGrid() {
+    const gridEl = document.getElementById('tt-grid');
+    const room = document.getElementById('tt-room-select').value;
+    const period = document.getElementById('tt-room-shift-select').value;
+    gridEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
+    const { data, error } = await supabase.from('timetable_entries').select('*').eq('account_id', schoolCtx.accountId).eq('room', room).eq('period', period);
+    if (error) { gridEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
+    ttEntries = data || [];
+
+    const weekDays = DAYS.slice(0, 6); // Monday–Saturday only
+    let html = `<div class="row-sub" style="margin-bottom:10px;">${room} · ${shiftLabel(period)}</div>`;
+    html += '<table style="width:100%;border-collapse:collapse;">';
+    html += '<tr><td></td>' + weekDays.map(d => `<td class="row-sub" style="padding:8px;text-align:center;">${dayAbbr(d)}</td>`).join('') + '</tr>';
+    html += '<tr><td></td>';
+    weekDays.forEach(d => {
+      const entry = ttEntries.find(e => e.day === d);
+      const teacherName = entry ? (allTeachers.find(tc => tc.id === entry.teacher_id)?.name || '—') : '';
+      const turmaLabel = entry ? `${entry.course} ${entry.grade}${entry.turma}` : '';
+      html += `<td class="tt-cell" data-day="${d}" style="border:1px solid var(--line);padding:8px;cursor:pointer;vertical-align:top;min-width:110px;">
+        ${entry ? `<div style="font-size:12px;font-weight:600;">${entry.subject}</div><div class="row-sub">${turmaLabel}</div><div class="row-sub">${teacherName}</div>` : `<div class="row-sub" style="font-style:italic;">${t('label_free')}</div>`}
+      </td>`;
+    });
+    html += '</tr></table>';
+    gridEl.innerHTML = html;
+
+    gridEl.querySelectorAll('.tt-cell').forEach(cell => {
+      cell.addEventListener('click', () => openTimetableModal(cell.dataset.day, period, { mode: 'room', room }));
+    });
+  }
+
+  let ttEditingDay = null, ttEditingPeriod = null, ttEditingRoomMode = false, ttEditingFixedRoom = null;
+  function openTimetableModal(day, period, ctxOverride) {
     ttEditingDay = day; ttEditingPeriod = period;
-    const key = document.getElementById('tt-turma-select').value;
-    const entry = ttEntries.find(e => e.day === day && e.period === period);
-    document.getElementById('tt-modal-title').textContent = `${key.split('|').slice(1).join('')} · ${dayLabel(day)} · ${shiftLabel(period)}`;
+    ttEditingRoomMode = !!(ctxOverride && ctxOverride.mode === 'room');
+    ttEditingFixedRoom = ctxOverride ? ctxOverride.room : null;
+
+    const entry = ttEditingRoomMode
+      ? ttEntries.find(e => e.day === day)
+      : ttEntries.find(e => e.day === day && e.period === period);
+
+    document.getElementById('tt-turma-field-wrap').classList.toggle('hidden', !ttEditingRoomMode);
+    document.getElementById('tt-room-field-wrap').classList.toggle('hidden', ttEditingRoomMode);
+
+    if (ttEditingRoomMode) {
+      const turmaSel = document.getElementById('tt-modal-turma-select');
+      turmaSel.innerHTML = ttTurmas.map(cls => `<option value="${cls.key}">${cls.course} ${cls.grade}${cls.turma}</option>`).join('');
+      turmaSel.value = entry ? `${entry.course}|${entry.grade}|${entry.turma}` : (turmaSel.options[0] ? turmaSel.options[0].value : '');
+      document.getElementById('tt-modal-title').textContent = `${ttEditingFixedRoom} · ${dayLabel(day)} · ${shiftLabel(period)}`;
+    } else {
+      const key = document.getElementById('tt-turma-select').value;
+      document.getElementById('tt-modal-title').textContent = `${key.split('|').slice(1).join('')} · ${dayLabel(day)} · ${shiftLabel(period)}`;
+    }
+
     document.getElementById('tt-subject').value = entry ? entry.subject : '';
     document.getElementById('tt-room').value = entry ? (entry.room || '') : '';
     const teacherSel = document.getElementById('tt-teacher');
@@ -1744,17 +1871,80 @@
     teacherSel.value = entry ? (entry.teacher_id || '') : '';
     document.getElementById('tt-msg').textContent = '';
     document.getElementById('tt-modal-overlay').classList.remove('hidden');
+    checkTimetableConflicts();
   }
   document.getElementById('tt-cancel').addEventListener('click', () => document.getElementById('tt-modal-overlay').classList.add('hidden'));
 
+  let ttConflictActive = false;
+  async function checkTimetableConflicts() {
+    const msg = document.getElementById('tt-msg');
+    const saveBtn = document.getElementById('tt-save');
+    const teacher_id = document.getElementById('tt-teacher').value || null;
+    const room = ttEditingRoomMode ? ttEditingFixedRoom : document.getElementById('tt-room').value.trim();
+
+    let course, grade, turma;
+    if (ttEditingRoomMode) {
+      const turmaKey = document.getElementById('tt-modal-turma-select').value;
+      if (turmaKey) [course, grade, turma] = turmaKey.split('|');
+    } else {
+      const key = document.getElementById('tt-turma-select').value;
+      [course, grade, turma] = key.split('|');
+    }
+
+    const messages = [];
+
+    if (teacher_id) {
+      const { data } = await supabase.from('timetable_entries').select('course, grade, turma')
+        .eq('account_id', schoolCtx.accountId).eq('teacher_id', teacher_id).eq('day', ttEditingDay).eq('period', ttEditingPeriod);
+      const clash = (data || []).find(c => !(c.course === course && c.grade === grade && c.turma === turma));
+      if (clash) messages.push(t('msg_teacher_clash'));
+    }
+
+    if (room) {
+      const { data } = await supabase.from('timetable_entries').select('course, grade, turma')
+        .eq('account_id', schoolCtx.accountId).eq('room', room).eq('day', ttEditingDay).eq('period', ttEditingPeriod);
+      const clash = (data || []).find(c => !(c.course === course && c.grade === grade && c.turma === turma));
+      if (clash) messages.push(t('msg_room_clash'));
+    }
+
+    ttConflictActive = messages.length > 0;
+    msg.className = ttConflictActive ? 'msg err' : '';
+    msg.textContent = messages.join(' ');
+    saveBtn.disabled = ttConflictActive;
+    saveBtn.style.opacity = ttConflictActive ? '0.5' : '1';
+    saveBtn.style.cursor = ttConflictActive ? 'not-allowed' : 'pointer';
+  }
+  document.getElementById('tt-teacher').addEventListener('change', checkTimetableConflicts);
+  document.getElementById('tt-room').addEventListener('input', checkTimetableConflicts);
+  document.getElementById('tt-modal-turma-select').addEventListener('change', checkTimetableConflicts);
+
   document.getElementById('tt-save').addEventListener('click', async () => {
-    const key = document.getElementById('tt-turma-select').value;
-    const [course, grade, turma] = key.split('|');
+    if (ttConflictActive) return;
+    const msg = document.getElementById('tt-msg');
+    let course, grade, turma;
+    if (ttEditingRoomMode) {
+      const turmaKey = document.getElementById('tt-modal-turma-select').value;
+      if (!turmaKey) { msg.className = 'msg err'; msg.textContent = t('msg_no_classes_add_students'); return; }
+      [course, grade, turma] = turmaKey.split('|');
+    } else {
+      const key = document.getElementById('tt-turma-select').value;
+      [course, grade, turma] = key.split('|');
+    }
     const subject = document.getElementById('tt-subject').value.trim();
     const teacher_id = document.getElementById('tt-teacher').value || null;
-    const room = document.getElementById('tt-room').value.trim();
-    const msg = document.getElementById('tt-msg');
-    const existing = ttEntries.find(e => e.day === ttEditingDay && e.period === ttEditingPeriod);
+    const room = ttEditingRoomMode ? ttEditingFixedRoom : document.getElementById('tt-room').value.trim();
+    const existing = ttEditingRoomMode
+      ? ttEntries.find(e => e.day === ttEditingDay)
+      : ttEntries.find(e => e.day === ttEditingDay && e.period === ttEditingPeriod);
+
+    // Best-effort room-clash check: no DB constraint backs this (unlike the teacher
+    // uniqueness constraint), so we check client-side before writing.
+    if (room) {
+      const { data: clash } = await supabase.from('timetable_entries').select('id, course, grade, turma')
+        .eq('account_id', schoolCtx.accountId).eq('room', room).eq('day', ttEditingDay).eq('period', ttEditingPeriod);
+      const conflict = (clash || []).find(c => c.id !== (existing ? existing.id : null) && (c.course !== course || c.grade !== grade || c.turma !== turma));
+      if (conflict) { msg.className = 'msg err'; msg.textContent = t('msg_room_clash'); return; }
+    }
 
     const payload = { account_id: schoolCtx.accountId, course, grade, turma, day: ttEditingDay, period: ttEditingPeriod, subject, teacher_id, room };
     const { error } = existing
@@ -1775,7 +1965,9 @@
   });
 
   document.getElementById('tt-clear').addEventListener('click', async () => {
-    const existing = ttEntries.find(e => e.day === ttEditingDay && e.period === ttEditingPeriod);
+    const existing = ttEditingRoomMode
+      ? ttEntries.find(e => e.day === ttEditingDay)
+      : ttEntries.find(e => e.day === ttEditingDay && e.period === ttEditingPeriod);
     if (existing) await supabase.from('timetable_entries').delete().eq('id', existing.id);
     document.getElementById('tt-modal-overlay').classList.add('hidden');
     renderTimetableGrid();
@@ -1811,19 +2003,37 @@
   }
 
   // ---------- TEST PAPERS ----------
+  let folhaTotals = {};
+
   async function loadFolhas() {
     const listEl = document.getElementById('folhas-list');
     listEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
     const { data: events, error } = await supabase.from('folha_events').select('student_id, delta').eq('account_id', schoolCtx.accountId);
     if (error) { listEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
-    const totals = {};
-    (events || []).forEach(e => { totals[e.student_id] = (totals[e.student_id] || 0) + Number(e.delta); });
+    folhaTotals = {};
+    (events || []).forEach(e => { folhaTotals[e.student_id] = (folhaTotals[e.student_id] || 0) + Number(e.delta); });
 
     if (!allStudents.length) { const { data } = await supabase.from('students').select('*').eq('account_id', schoolCtx.accountId); allStudents = data || []; }
+    renderFolhas();
+  }
+
+  function renderFolhas() {
+    const listEl = document.getElementById('folhas-list');
     if (!allStudents.length) { listEl.innerHTML = `<div class="empty-note">${t('msg_no_students_yet')}</div>`; return; }
+
+    const q = document.getElementById('folha-search').value.trim().toLowerCase();
+    const sortBy = document.getElementById('folha-sort').value;
+    let list = allStudents.filter(s => !q || s.name.toLowerCase().includes(q) || s.student_number.includes(q));
+    if (sortBy === 'added') {
+      list = [...list].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    } else {
+      list = [...list].sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    if (!list.length) { listEl.innerHTML = `<div class="empty-note">${t('msg_no_students_found')}</div>`; return; }
     listEl.innerHTML = '';
-    allStudents.forEach((s) => {
-      const balance = totals[s.id] || 0;
+    list.forEach((s) => {
+      const balance = folhaTotals[s.id] || 0;
       const row = document.createElement('div');
       row.className = 'row';
       row.innerHTML = `<div class="row-main"><div class="row-title">${s.name}</div><div class="row-sub">#${s.student_number}</div></div><span class="pill ${balance <= 3 ? 'revoked' : 'active'} mono">${balance} ${t('unit_left')}</span>`;
@@ -1837,6 +2047,8 @@
       listEl.appendChild(row);
     });
   }
+  document.getElementById('folha-search').addEventListener('input', renderFolhas);
+  document.getElementById('folha-sort').addEventListener('change', renderFolhas);
 
   // ---------- CALENDAR ----------
   async function loadCalendar() {
@@ -2002,12 +2214,11 @@
         <select class="input-inline" id="sm-room" style="width:100%;margin-bottom:14px;">
           <option value="Sala 1">Sala 1</option><option value="Sala 2">Sala 2</option><option value="Sala 3">Sala 3</option>
           <option value="Sala 4">Sala 4</option><option value="Sala 5">Sala 5</option><option value="Sala 6">Sala 6</option>
-          <option value="Lab. Informática">Lab. Informática</option><option value="Lab. Eletrónica">Lab. Eletrónica</option><option value="Lab. Telecom">Lab. Telecom</option>
         </select>
       </div>
       <div style="flex:1;"><label class="field-label" data-i18n="label_shift">Shift</label>
         <select class="input-inline" id="sm-shift" style="width:100%;margin-bottom:14px;">
-          <option value="morning">morning</option><option value="afternoon">afternoon</option>
+          <option value="morning" data-i18n="shift_morning">Morning</option><option value="afternoon" data-i18n="shift_afternoon">Afternoon</option>
         </select>
       </div>
     </div>
@@ -2041,12 +2252,18 @@
 <div id="tt-modal-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:60;display:flex;align-items:center;justify-content:center;">
   <div style="width:300px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;">
     <div style="font-size:14px;font-weight:700;margin-bottom:14px;" id="tt-modal-title"></div>
+    <div id="tt-turma-field-wrap" class="hidden">
+      <label class="field-label" data-i18n="label_turma_class">Class</label>
+      <select class="input-inline" id="tt-modal-turma-select" style="width:100%;margin-bottom:10px;"></select>
+    </div>
     <label class="field-label" data-i18n="label_subject">Subject</label>
     <input class="input-inline" id="tt-subject" style="width:100%;margin-bottom:10px;" />
     <label class="field-label" data-i18n="label_teacher">Teacher</label>
     <select class="input-inline" id="tt-teacher" style="width:100%;margin-bottom:10px;"></select>
-    <label class="field-label" data-i18n="label_room">Room</label>
-    <input class="input-inline" id="tt-room" style="width:100%;margin-bottom:14px;" />
+    <div id="tt-room-field-wrap">
+      <label class="field-label" data-i18n="label_room">Room</label>
+      <input class="input-inline" id="tt-room" style="width:100%;margin-bottom:14px;" />
+    </div>
     <div class="msg" id="tt-msg" style="margin-bottom:8px;"></div>
     <div style="display:flex;gap:8px;">
       <button class="btn btn-gold-sm" id="tt-save" style="flex:1;justify-content:center;" data-i18n="btn_save">Save</button>
