@@ -108,6 +108,49 @@
   .view { display: none; }
   .view.active { display: block; }
 
+  /* ---------- timetable ---------- */
+  .tt-toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .tt-toolbar select { min-width:170px; }
+  .tt-grid-card { padding:14px; }
+  .tt-meta { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:0 0 12px; color:var(--muted); font-size:12px; }
+  .tt-legend { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .tt-legend-chip { display:inline-flex; align-items:center; gap:6px; padding:5px 9px; border:1px solid var(--line); border-radius:999px; background:var(--panel-2); font-size:11px; color:var(--muted); }
+  .tt-legend-dot { width:7px; height:7px; border-radius:50%; background:var(--success); }
+  .tt-table-wrap { width:100%; overflow-x:auto; border:1px solid var(--line); border-radius:10px; }
+  .tt-table { width:100%; min-width:850px; border-collapse:separate; border-spacing:0; }
+  .tt-table th { position:sticky; top:0; z-index:1; padding:11px 9px; text-align:center; color:var(--muted); background:var(--panel-2); font-size:11px; font-weight:600; border-bottom:1px solid var(--line); }
+  .tt-table th:first-child { min-width:112px; text-align:left; }
+  .tt-table td { padding:7px; vertical-align:stretch; border-right:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--panel); }
+  .tt-table tr:last-child td { border-bottom:0; }
+  .tt-table td:last-child, .tt-table th:last-child { border-right:0; }
+  .tt-period { min-width:112px; padding:12px !important; color:var(--text); font-size:11px; font-weight:700; white-space:nowrap; background:var(--panel-2) !important; }
+  .tt-period small { display:block; margin-top:4px; color:var(--muted); font-size:10px; font-weight:400; }
+  .tt-cell { min-width:105px; min-height:94px; height:100%; cursor:pointer; transition:background .15s,border-color .15s; }
+  .tt-cell:hover { background:var(--gold-soft); }
+  .tt-slot { min-height:76px; height:100%; padding:9px; border:1px solid var(--line); border-radius:8px; background:var(--panel-2); display:flex; flex-direction:column; gap:5px; }
+  .tt-slot.filled { border-color:rgba(240,169,62,.3); background:linear-gradient(145deg,rgba(240,169,62,.09),var(--panel-2) 75%); }
+  .tt-slot-subject { font-size:12px; line-height:1.35; font-weight:700; color:var(--text); overflow-wrap:anywhere; }
+  .tt-slot-meta { font-size:10.5px; line-height:1.35; color:var(--muted); overflow-wrap:anywhere; }
+  .tt-slot-room { margin-top:auto; color:var(--gold); font-size:10.5px; }
+  .tt-free { color:var(--muted); font-size:11px; font-style:italic; padding:9px 2px; }
+  .tt-cell:focus-visible { outline:2px solid var(--gold); outline-offset:-3px; }
+  .tt-status { margin:0 0 12px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:var(--panel-2); color:var(--muted); font-size:12px; }
+  #tt-modal-overlay { padding:18px; overflow-y:auto; }
+  #tt-modal-overlay > div { width:min(440px,100%) !important; max-height:calc(100vh - 36px); overflow-y:auto; }
+  @media (max-width: 900px) {
+    .tt-toolbar { align-items:stretch; }
+    .tt-toolbar select { flex:1; min-width:140px; max-width:none !important; }
+    .tt-toolbar button { margin-left:0 !important; }
+    .tt-grid-card { padding:9px; }
+  }
+  @media (max-width: 600px) {
+    .tt-toolbar { gap:8px; }
+    .tt-toolbar select, .tt-toolbar button { width:100%; }
+    .tt-table { min-width:790px; }
+    #tt-modal-overlay > div { padding:18px !important; }
+  }
+
+
   /* ---------- language switcher ---------- */
   .lang-switch { position: fixed; top: 14px; right: 16px; z-index: 100; display: flex; gap: 2px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 3px; box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
   .lang-btn { border: none; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.03em; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
@@ -240,16 +283,17 @@
       </div>
 
       <div class="view" id="s-view-timetable">
-        <div class="toolbar">
-          <select class="input-inline" id="tt-turma-select" style="max-width:260px;"></select>
-          <select class="input-inline hidden" id="tt-room-select" style="max-width:200px;"></select>
-          <select class="input-inline hidden" id="tt-room-shift-select" style="max-width:160px;">
+        <div class="tt-toolbar">
+          <select class="input-inline" id="tt-turma-select" aria-label="Class timetable"></select>
+          <select class="input-inline hidden" id="tt-room-select" aria-label="Room timetable"></select>
+          <select class="input-inline hidden" id="tt-room-shift-select" aria-label="Shift">
             <option value="morning" data-i18n="shift_morning">Morning</option>
             <option value="afternoon" data-i18n="shift_afternoon">Afternoon</option>
           </select>
           <button class="btn admin-only" id="tt-mode-toggle-btn" style="margin-left:auto;"></button>
         </div>
-        <div class="card" id="tt-grid"><div class="empty-note">Loading…</div></div>
+        <div class="tt-status" id="tt-status" aria-live="polite"></div>
+        <div class="card tt-grid-card" id="tt-grid"><div class="empty-note">Loading…</div></div>
       </div>
 
       <div class="view" id="s-view-debts">
@@ -494,6 +538,7 @@
       msg_grade_range: "Grade must be between 0 and 20.",
       msg_number_name_required: "Number and name are required.",
       msg_name_required: "Name is required.",
+      msg_subject_required: "Subject is required.",
       msg_enter_amount: "Enter an amount.",
       msg_teacher_clash: "This teacher already has a class at this exact day/period. Split professors — pick a different teacher for this class, or reassign the other one first.",
       msg_no_recovery_email: "No recovery email set yet.",
@@ -694,6 +739,7 @@
       msg_grade_range: "A nota deve estar entre 0 e 20.",
       msg_number_name_required: "Número e nome são obrigatórios.",
       msg_name_required: "O nome é obrigatório.",
+      msg_subject_required: "A disciplina é obrigatória.",
       msg_enter_amount: "Indique um valor.",
       msg_teacher_clash: "Este professor já tem uma aula exactamente neste dia/período. Professores sobrepostos — escolha outro professor para esta aula, ou reatribua primeiro a outra.",
       msg_no_recovery_email: "Ainda não foi definido um e-mail de recuperação.",
@@ -1700,12 +1746,45 @@
   });
 
   // ---------- TIMETABLE ----------
+  // Keep the existing timetable_entries schema unchanged: account_id, course, grade,
+  // turma, day, period, subject, teacher_id, and room.
   const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const PERIODS = ['morning', 'afternoon'];
   const ALL_ROOMS = ['Sala 1', 'Sala 2', 'Sala 3', 'Sala 4', 'Sala 5', 'Sala 6', 'Lab. Informática', 'Lab. Eletrónica', 'Lab. Telecom'];
   let ttTurmas = [];
   let ttEntries = [];
   let ttMode = 'turma'; // 'turma' | 'room' — room mode is admin/co-admin only
+  let ttEditingDay = null;
+  let ttEditingPeriod = null;
+  let ttEditingRoomMode = false;
+  let ttEditingFixedRoom = null;
+  let ttEditingEntryId = null;
+  let ttConflictActive = false;
+  let ttConflictCheckToken = 0;
+  let ttSaving = false;
+
+  function ttClassKey(entry) {
+    return `${entry.course}|${entry.grade}|${entry.turma}`;
+  }
+
+  function ttSelectedClass() {
+    const key = document.getElementById('tt-turma-select').value;
+    if (!key) return null;
+    const cls = ttTurmas.find(item => item.key === key);
+    if (cls) return cls;
+    const [course, grade, turma] = key.split('|');
+    return { course, grade, turma, key, shift: null, room: null };
+  }
+
+  function ttEntryAt(day, period) {
+    return ttEntries.find(entry => entry.day === day && entry.period === period) || null;
+  }
+
+  function ttEsc(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+  }
 
   function updateTtModeUI() {
     const isRoom = ttMode === 'room';
@@ -1713,24 +1792,35 @@
     document.getElementById('tt-room-select').classList.toggle('hidden', !isRoom);
     document.getElementById('tt-room-shift-select').classList.toggle('hidden', !isRoom);
     document.getElementById('tt-mode-toggle-btn').textContent = isRoom ? t('btn_view_by_turma') : t('btn_view_by_room');
+    document.getElementById('tt-status').textContent = isRoom
+      ? `${t('label_room')}: ${document.getElementById('tt-room-select').value || '—'} · ${shiftLabel(document.getElementById('tt-room-shift-select').value)}`
+      : (() => { const cls = ttSelectedClass(); return cls ? `${cls.course} · ${cls.grade}${cls.turma}${cls.room ? ` · ${cls.room}` : ''}${cls.shift ? ` · ${shiftLabel(cls.shift)}` : ''}` : t('msg_no_classes_add_students'); })();
   }
 
   async function loadTimetable() {
-    const { data: students } = await supabase.from('students').select('course, grade, turma, shift, room').eq('account_id', schoolCtx.accountId);
+    const gridEl = document.getElementById('tt-grid');
+    gridEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
+    const { data: students, error: studentError } = await supabase
+      .from('students').select('course, grade, turma, shift, room').eq('account_id', schoolCtx.accountId);
+    if (studentError) {
+      gridEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${ttEsc(studentError.message)}</div>`;
+      return;
+    }
+
     const seen = new Map();
     ttTurmas = [];
-    (students || []).forEach(s => {
-      const key = `${s.course}|${s.grade}|${s.turma}`;
+    (students || []).forEach(student => {
+      const key = `${student.course}|${student.grade}|${student.turma}`;
       if (!seen.has(key)) {
         seen.set(key, { shiftCounts: {}, roomCounts: {} });
-        ttTurmas.push({ course: s.course, grade: s.grade, turma: s.turma, key, shift: null, room: null });
+        ttTurmas.push({ course: student.course, grade: student.grade, turma: student.turma, key, shift: null, room: null });
       }
       const counts = seen.get(key);
-      if (s.shift) counts.shiftCounts[s.shift] = (counts.shiftCounts[s.shift] || 0) + 1;
-      if (s.room) counts.roomCounts[s.room] = (counts.roomCounts[s.room] || 0) + 1;
+      if (student.shift) counts.shiftCounts[student.shift] = (counts.shiftCounts[student.shift] || 0) + 1;
+      if (student.room) counts.roomCounts[student.room] = (counts.roomCounts[student.room] || 0) + 1;
     });
-    // Each turma's shift/room is inferred from the majority of its students, since in
-    // practice a whole turma studies together in one shift and one room.
+
+    // Infer a turma's usual shift/room from its students; these are display hints only.
     ttTurmas.forEach(cls => {
       const counts = seen.get(cls.key);
       const topShift = Object.entries(counts.shiftCounts).sort((a, b) => b[1] - a[1])[0];
@@ -1738,239 +1828,311 @@
       cls.shift = topShift ? topShift[0] : null;
       cls.room = topRoom ? topRoom[0] : null;
     });
+
     const sel = document.getElementById('tt-turma-select');
-    sel.innerHTML = ttTurmas.map(cls => `<option value="${cls.key}">${cls.course} ${cls.grade}${cls.turma}</option>`).join('') || `<option value="">${t('msg_no_classes_add_students')}</option>`;
+    const previousClass = sel.value;
+    sel.innerHTML = ttTurmas.map(cls => `<option value="${ttEsc(cls.key)}">${ttEsc(cls.course)} ${ttEsc(cls.grade)}${ttEsc(cls.turma)}</option>`).join('')
+      || `<option value="">${ttEsc(t('msg_no_classes_add_students'))}</option>`;
+    if (ttTurmas.some(cls => cls.key === previousClass)) sel.value = previousClass;
 
     const roomSel = document.getElementById('tt-room-select');
-    if (!roomSel.options.length) roomSel.innerHTML = ALL_ROOMS.map(r => `<option value="${r}">${r}</option>`).join('');
+    const previousRoom = roomSel.value;
+    roomSel.innerHTML = ALL_ROOMS.map(room => `<option value="${ttEsc(room)}">${ttEsc(room)}</option>`).join('');
+    if (ALL_ROOMS.includes(previousRoom)) roomSel.value = previousRoom;
 
-    if (!allTeachers.length) {
-      const { data } = await supabase.from('teachers').select('*').eq('account_id', schoolCtx.accountId).order('name');
-      allTeachers = data || [];
+    const { data: teachers, error: teacherError } = await supabase
+      .from('teachers').select('*').eq('account_id', schoolCtx.accountId).order('name');
+    if (teacherError) {
+      gridEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${ttEsc(teacherError.message)}</div>`;
+      return;
     }
+    allTeachers = teachers || [];
 
-    // Room-mode scheduling is restricted to admins/co-admins, so reset to turma mode
-    // for anyone else (e.g. a teacher whose role changed, or on first load).
+    // Room-first mode is available only to admins/co-admins.
     if (!['admin', 'co_admin'].includes(schoolCtx.role)) ttMode = 'turma';
     updateTtModeUI();
-
     await renderTimetableGrid();
   }
-  document.getElementById('tt-turma-select').addEventListener('change', renderTimetableGrid);
-  document.getElementById('tt-room-select').addEventListener('change', renderTimetableGrid);
-  document.getElementById('tt-room-shift-select').addEventListener('change', renderTimetableGrid);
+
+  document.getElementById('tt-turma-select').addEventListener('change', () => { updateTtModeUI(); renderTimetableGrid(); });
+  document.getElementById('tt-room-select').addEventListener('change', () => { updateTtModeUI(); renderTimetableGrid(); });
+  document.getElementById('tt-room-shift-select').addEventListener('change', () => { updateTtModeUI(); renderTimetableGrid(); });
   document.getElementById('tt-mode-toggle-btn').addEventListener('click', () => {
+    if (!['admin', 'co_admin'].includes(schoolCtx.role)) return;
     ttMode = ttMode === 'turma' ? 'room' : 'turma';
     updateTtModeUI();
     renderTimetableGrid();
   });
 
-  async function renderTimetableGrid() {
-    if (ttMode === 'room') return renderRoomGrid();
+  function renderTtSlot(entry, roomMode = false) {
+    if (!entry) return `<div class="tt-slot"><div class="tt-free">${ttEsc(t('label_free'))}</div></div>`;
+    const teacherName = allTeachers.find(teacher => teacher.id === entry.teacher_id)?.name || '—';
+    const classLabel = `${entry.course || ''} ${entry.grade || ''}${entry.turma || ''}`.trim();
+    return `<div class="tt-slot filled">
+      <div class="tt-slot-subject">${ttEsc(entry.subject || '—')}</div>
+      ${roomMode ? `<div class="tt-slot-meta">${ttEsc(classLabel)}</div>` : ''}
+      <div class="tt-slot-meta">${ttEsc(teacherName)}</div>
+      ${roomMode ? '' : `<div class="tt-slot-room">${ttEsc(entry.room || '—')}</div>`}
+    </div>`;
+  }
 
-    const gridEl = document.getElementById('tt-grid');
-    const key = document.getElementById('tt-turma-select').value;
-    if (!key) { gridEl.innerHTML = `<div class="empty-note">${t('msg_no_classes_add_students')}</div>`; return; }
-    gridEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
-    const [course, grade, turma] = key.split('|');
-    const { data, error } = await supabase.from('timetable_entries').select('*').eq('account_id', schoolCtx.accountId).eq('course', course).eq('grade', grade).eq('turma', turma);
-    if (error) { gridEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
-    ttEntries = data || [];
-
-    // The turma studies in a single shift/room (inferred from its students), so we only
-    // show that one row instead of both Manhã and Tarde — matches how a real timetable
-    // for a given turma/room/shift combination is normally laid out.
-    const cls = ttTurmas.find(c => c.key === key);
-    const periodsToShow = (cls && cls.shift && PERIODS.includes(cls.shift)) ? [cls.shift] : PERIODS;
-
-    let html = '';
-    if (cls && (cls.shift || cls.room)) {
-      html += `<div class="row-sub" style="margin-bottom:10px;">${cls.room ? cls.room + ' · ' : ''}${cls.shift ? shiftLabel(cls.shift) : ''}</div>`;
-    }
-    html += '<table style="width:100%;border-collapse:collapse;">';
-    html += '<tr><td></td>' + DAYS.map(d => `<td class="row-sub" style="padding:8px;text-align:center;">${dayAbbr(d)}</td>`).join('') + '</tr>';
-    periodsToShow.forEach(p => {
-      html += `<tr><td class="row-sub mono" style="padding:8px;white-space:nowrap;">${shiftLabel(p)}</td>`;
-      DAYS.forEach(d => {
-        const entry = ttEntries.find(e => e.day === d && e.period === p);
-        const teacherName = entry ? (allTeachers.find(tc => tc.id === entry.teacher_id)?.name || '—') : '';
-        html += `<td class="tt-cell" data-day="${d}" data-period="${p}" style="border:1px solid var(--line);padding:8px;cursor:pointer;vertical-align:top;min-width:100px;">
-          ${entry ? `<div style="font-size:12px;font-weight:600;">${entry.subject}</div><div class="row-sub">${teacherName}</div><div class="row-sub" style="color:var(--gold);">${entry.room || ''}</div>` : `<div class="row-sub" style="font-style:italic;">${t('label_free')}</div>`}
-        </td>`;
+  function attachTtCellHandlers() {
+    document.querySelectorAll('#tt-grid .tt-cell').forEach(cell => {
+      cell.addEventListener('click', () => openTimetableModal(cell.dataset.day, cell.dataset.period, cell.dataset.mode === 'room'
+        ? { mode: 'room', room: cell.dataset.room }
+        : null));
+      cell.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          cell.click();
+        }
       });
-      html += '</tr>';
-    });
-    html += '</table>';
-    gridEl.innerHTML = html;
-
-    gridEl.querySelectorAll('.tt-cell').forEach(cell => {
-      cell.addEventListener('click', () => openTimetableModal(cell.dataset.day, cell.dataset.period));
     });
   }
 
-  // Room-first scheduling: pick a Sala + Turno, then assign a class to each weekday
-  // (Monday–Saturday) — this is how labs shared across turmas actually get booked,
-  // and covers the "select room and period first" workflow admins asked for.
+  async function renderTimetableGrid() {
+    updateTtModeUI();
+    if (ttMode === 'room') return renderRoomGrid();
+
+    const gridEl = document.getElementById('tt-grid');
+    const cls = ttSelectedClass();
+    if (!cls) { gridEl.innerHTML = `<div class="empty-note">${ttEsc(t('msg_no_classes_add_students'))}</div>`; return; }
+    gridEl.innerHTML = `<div class="empty-note">${ttEsc(t('msg_loading'))}</div>`;
+    const { data, error } = await supabase.from('timetable_entries').select('*')
+      .eq('account_id', schoolCtx.accountId).eq('course', cls.course).eq('grade', cls.grade).eq('turma', cls.turma);
+    if (error) { gridEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${ttEsc(error.message)}</div>`; return; }
+    ttEntries = data || [];
+
+    // Always show both shifts so existing lessons are never hidden if student shift data changes.
+    let html = `<div class="tt-meta"><div class="tt-legend"><span class="tt-legend-chip"><span class="tt-legend-dot"></span>${ttEsc(t('label_free'))} / lesson slots</span></div><span>${ttEsc(cls.course)} · ${ttEsc(cls.grade)}${ttEsc(cls.turma)}</span></div>`;
+    html += '<div class="tt-table-wrap"><table class="tt-table"><thead><tr><th></th>';
+    html += DAYS.map(day => `<th>${ttEsc(dayAbbr(day))}</th>`).join('');
+    html += '</tr></thead><tbody>';
+    PERIODS.forEach(period => {
+      html += `<tr><td class="tt-period">${ttEsc(shiftLabel(period))}<small>${period === 'morning' ? 'AM' : 'PM'}</small></td>`;
+      DAYS.forEach(day => {
+        const entry = ttEntryAt(day, period);
+        html += `<td class="tt-cell" role="button" tabindex="0" aria-label="${ttEsc(dayLabel(day))}, ${ttEsc(shiftLabel(period))}" data-day="${day}" data-period="${period}">${renderTtSlot(entry)}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    gridEl.innerHTML = html;
+    attachTtCellHandlers();
+  }
+
+  // Room-first view shows which class occupies a room in each day/shift slot.
   async function renderRoomGrid() {
     const gridEl = document.getElementById('tt-grid');
     const room = document.getElementById('tt-room-select').value;
     const period = document.getElementById('tt-room-shift-select').value;
-    gridEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
-    const { data, error } = await supabase.from('timetable_entries').select('*').eq('account_id', schoolCtx.accountId).eq('room', room).eq('period', period);
-    if (error) { gridEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
+    if (!room || !PERIODS.includes(period)) { gridEl.innerHTML = `<div class="empty-note">${ttEsc(t('msg_loading'))}</div>`; return; }
+    gridEl.innerHTML = `<div class="empty-note">${ttEsc(t('msg_loading'))}</div>`;
+    const { data, error } = await supabase.from('timetable_entries').select('*')
+      .eq('account_id', schoolCtx.accountId).eq('room', room).eq('period', period);
+    if (error) { gridEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${ttEsc(error.message)}</div>`; return; }
     ttEntries = data || [];
 
-    const weekDays = DAYS.slice(0, 6); // Monday–Saturday only
-    let html = `<div class="row-sub" style="margin-bottom:10px;">${room} · ${shiftLabel(period)}</div>`;
-    html += '<table style="width:100%;border-collapse:collapse;">';
-    html += '<tr><td></td>' + weekDays.map(d => `<td class="row-sub" style="padding:8px;text-align:center;">${dayAbbr(d)}</td>`).join('') + '</tr>';
-    html += '<tr><td></td>';
-    weekDays.forEach(d => {
-      const entry = ttEntries.find(e => e.day === d);
-      const teacherName = entry ? (allTeachers.find(tc => tc.id === entry.teacher_id)?.name || '—') : '';
-      const turmaLabel = entry ? `${entry.course} ${entry.grade}${entry.turma}` : '';
-      html += `<td class="tt-cell" data-day="${d}" style="border:1px solid var(--line);padding:8px;cursor:pointer;vertical-align:top;min-width:110px;">
-        ${entry ? `<div style="font-size:12px;font-weight:600;">${entry.subject}</div><div class="row-sub">${turmaLabel}</div><div class="row-sub">${teacherName}</div>` : `<div class="row-sub" style="font-style:italic;">${t('label_free')}</div>`}
-      </td>`;
+    const weekDays = DAYS.slice(0, 6);
+    let html = `<div class="tt-meta"><div class="tt-legend"><span class="tt-legend-chip"><span class="tt-legend-dot"></span>${ttEsc(t('label_free'))} / lesson slots</span></div><span>${ttEsc(room)} · ${ttEsc(shiftLabel(period))}</span></div>`;
+    html += '<div class="tt-table-wrap"><table class="tt-table"><thead><tr><th></th>';
+    html += weekDays.map(day => `<th>${ttEsc(dayAbbr(day))}</th>`).join('');
+    html += `</tr></thead><tbody><tr><td class="tt-period">${ttEsc(shiftLabel(period))}<small>${period === 'morning' ? 'AM' : 'PM'}</small></td>`;
+    weekDays.forEach(day => {
+      const entry = ttEntries.find(item => item.day === day) || null;
+      html += `<td class="tt-cell" role="button" tabindex="0" aria-label="${ttEsc(dayLabel(day))}, ${ttEsc(shiftLabel(period))}" data-day="${day}" data-period="${period}" data-mode="room" data-room="${ttEsc(room)}">${renderTtSlot(entry, true)}</td>`;
     });
-    html += '</tr></table>';
+    html += '</tr></tbody></table></div>';
     gridEl.innerHTML = html;
-
-    gridEl.querySelectorAll('.tt-cell').forEach(cell => {
-      cell.addEventListener('click', () => openTimetableModal(cell.dataset.day, period, { mode: 'room', room }));
-    });
+    attachTtCellHandlers();
   }
 
-  let ttEditingDay = null, ttEditingPeriod = null, ttEditingRoomMode = false, ttEditingFixedRoom = null;
   function openTimetableModal(day, period, ctxOverride) {
-    ttEditingDay = day; ttEditingPeriod = period;
+    ttEditingDay = day;
+    ttEditingPeriod = period;
     ttEditingRoomMode = !!(ctxOverride && ctxOverride.mode === 'room');
-    ttEditingFixedRoom = ctxOverride ? ctxOverride.room : null;
+    ttEditingFixedRoom = ttEditingRoomMode ? ctxOverride.room : null;
 
     const entry = ttEditingRoomMode
-      ? ttEntries.find(e => e.day === day)
-      : ttEntries.find(e => e.day === day && e.period === period);
+      ? (ttEntries.find(item => item.day === day && item.period === period) || null)
+      : ttEntryAt(day, period);
+    ttEditingEntryId = entry ? entry.id : null;
 
     document.getElementById('tt-turma-field-wrap').classList.toggle('hidden', !ttEditingRoomMode);
     document.getElementById('tt-room-field-wrap').classList.toggle('hidden', ttEditingRoomMode);
 
     if (ttEditingRoomMode) {
       const turmaSel = document.getElementById('tt-modal-turma-select');
-      turmaSel.innerHTML = ttTurmas.map(cls => `<option value="${cls.key}">${cls.course} ${cls.grade}${cls.turma}</option>`).join('');
-      turmaSel.value = entry ? `${entry.course}|${entry.grade}|${entry.turma}` : (turmaSel.options[0] ? turmaSel.options[0].value : '');
+      turmaSel.innerHTML = ttTurmas.map(cls => `<option value="${ttEsc(cls.key)}">${ttEsc(cls.course)} ${ttEsc(cls.grade)}${ttEsc(cls.turma)}</option>`).join('');
+      turmaSel.value = entry ? ttClassKey(entry) : (turmaSel.options[0] ? turmaSel.options[0].value : '');
       document.getElementById('tt-modal-title').textContent = `${ttEditingFixedRoom} · ${dayLabel(day)} · ${shiftLabel(period)}`;
     } else {
-      const key = document.getElementById('tt-turma-select').value;
-      document.getElementById('tt-modal-title').textContent = `${key.split('|').slice(1).join('')} · ${dayLabel(day)} · ${shiftLabel(period)}`;
+      const cls = ttSelectedClass();
+      document.getElementById('tt-modal-title').textContent = `${cls ? `${cls.course} ${cls.grade}${cls.turma}` : ''} · ${dayLabel(day)} · ${shiftLabel(period)}`;
     }
 
-    document.getElementById('tt-subject').value = entry ? entry.subject : '';
-    document.getElementById('tt-room').value = entry ? (entry.room || '') : '';
+    document.getElementById('tt-subject').value = entry ? (entry.subject || '') : '';
+    document.getElementById('tt-room').value = entry ? (entry.room || '') : (ttSelectedClass()?.room || '');
     const teacherSel = document.getElementById('tt-teacher');
-    teacherSel.innerHTML = `<option value="">${t('opt_none')}</option>` + allTeachers.map(tc => `<option value="${tc.id}">${tc.name}</option>`).join('');
+    teacherSel.innerHTML = `<option value="">${ttEsc(t('opt_none'))}</option>` + allTeachers.map(teacher => `<option value="${ttEsc(teacher.id)}">${ttEsc(teacher.name)}</option>`).join('');
     teacherSel.value = entry ? (entry.teacher_id || '') : '';
     document.getElementById('tt-msg').textContent = '';
+    document.getElementById('tt-msg').className = 'msg';
     document.getElementById('tt-modal-overlay').classList.remove('hidden');
     checkTimetableConflicts();
   }
+
   document.getElementById('tt-cancel').addEventListener('click', () => document.getElementById('tt-modal-overlay').classList.add('hidden'));
 
-  let ttConflictActive = false;
   async function checkTimetableConflicts() {
+    const token = ++ttConflictCheckToken;
     const msg = document.getElementById('tt-msg');
     const saveBtn = document.getElementById('tt-save');
     const teacher_id = document.getElementById('tt-teacher').value || null;
     const room = ttEditingRoomMode ? ttEditingFixedRoom : document.getElementById('tt-room').value.trim();
-
-    let course, grade, turma;
-    if (ttEditingRoomMode) {
-      const turmaKey = document.getElementById('tt-modal-turma-select').value;
-      if (turmaKey) [course, grade, turma] = turmaKey.split('|');
-    } else {
-      const key = document.getElementById('tt-turma-select').value;
-      [course, grade, turma] = key.split('|');
-    }
-
+    const classKey = ttEditingRoomMode
+      ? document.getElementById('tt-modal-turma-select').value
+      : document.getElementById('tt-turma-select').value;
+    const cls = ttTurmas.find(item => item.key === classKey);
     const messages = [];
 
+    ttConflictActive = false;
+    saveBtn.disabled = true;
+    saveBtn.style.opacity = '0.55';
+    saveBtn.style.cursor = 'wait';
+    msg.className = 'msg muted';
+    msg.textContent = t('msg_loading');
+
+    if (!classKey || !cls) {
+      if (token === ttConflictCheckToken) {
+        msg.className = 'msg err';
+        msg.textContent = t('msg_no_classes_add_students');
+        saveBtn.disabled = true;
+      }
+      return false;
+    }
+
     if (teacher_id) {
-      const { data } = await supabase.from('timetable_entries').select('course, grade, turma')
+      const { data, error } = await supabase.from('timetable_entries').select('id, course, grade, turma')
         .eq('account_id', schoolCtx.accountId).eq('teacher_id', teacher_id).eq('day', ttEditingDay).eq('period', ttEditingPeriod);
-      const clash = (data || []).find(c => !(c.course === course && c.grade === grade && c.turma === turma));
-      if (clash) messages.push(t('msg_teacher_clash'));
+      if (error) messages.push(error.message);
+      else {
+        const clash = (data || []).find(item => item.id !== ttEditingEntryId);
+        if (clash) messages.push(t('msg_teacher_clash'));
+      }
     }
 
     if (room) {
-      const { data } = await supabase.from('timetable_entries').select('course, grade, turma')
+      const { data, error } = await supabase.from('timetable_entries').select('id, course, grade, turma')
         .eq('account_id', schoolCtx.accountId).eq('room', room).eq('day', ttEditingDay).eq('period', ttEditingPeriod);
-      const clash = (data || []).find(c => !(c.course === course && c.grade === grade && c.turma === turma));
-      if (clash) messages.push(t('msg_room_clash'));
+      if (error) messages.push(error.message);
+      else {
+        const clash = (data || []).find(item => item.id !== ttEditingEntryId);
+        if (clash) messages.push(t('msg_room_clash'));
+      }
     }
 
+    if (token !== ttConflictCheckToken) return false;
     ttConflictActive = messages.length > 0;
-    msg.className = ttConflictActive ? 'msg err' : '';
-    msg.textContent = messages.join(' ');
-    saveBtn.disabled = ttConflictActive;
-    saveBtn.style.opacity = ttConflictActive ? '0.5' : '1';
-    saveBtn.style.cursor = ttConflictActive ? 'not-allowed' : 'pointer';
+    msg.className = ttConflictActive ? 'msg err' : (messages.length ? 'msg err' : 'msg muted');
+    msg.textContent = messages.length ? messages.join(' ') : '';
+    saveBtn.disabled = ttConflictActive || ttSaving;
+    saveBtn.style.opacity = saveBtn.disabled ? '0.55' : '1';
+    saveBtn.style.cursor = saveBtn.disabled ? 'not-allowed' : 'pointer';
+    return !ttConflictActive;
   }
+
   document.getElementById('tt-teacher').addEventListener('change', checkTimetableConflicts);
   document.getElementById('tt-room').addEventListener('input', checkTimetableConflicts);
   document.getElementById('tt-modal-turma-select').addEventListener('change', checkTimetableConflicts);
 
   document.getElementById('tt-save').addEventListener('click', async () => {
-    if (ttConflictActive) return;
+    if (ttSaving) return;
     const msg = document.getElementById('tt-msg');
-    let course, grade, turma;
-    if (ttEditingRoomMode) {
-      const turmaKey = document.getElementById('tt-modal-turma-select').value;
-      if (!turmaKey) { msg.className = 'msg err'; msg.textContent = t('msg_no_classes_add_students'); return; }
-      [course, grade, turma] = turmaKey.split('|');
-    } else {
-      const key = document.getElementById('tt-turma-select').value;
-      [course, grade, turma] = key.split('|');
-    }
     const subject = document.getElementById('tt-subject').value.trim();
     const teacher_id = document.getElementById('tt-teacher').value || null;
     const room = ttEditingRoomMode ? ttEditingFixedRoom : document.getElementById('tt-room').value.trim();
-    const existing = ttEditingRoomMode
-      ? ttEntries.find(e => e.day === ttEditingDay)
-      : ttEntries.find(e => e.day === ttEditingDay && e.period === ttEditingPeriod);
+    const classKey = ttEditingRoomMode
+      ? document.getElementById('tt-modal-turma-select').value
+      : document.getElementById('tt-turma-select').value;
+    const cls = ttTurmas.find(item => item.key === classKey);
 
-    // Best-effort room-clash check: no DB constraint backs this (unlike the teacher
-    // uniqueness constraint), so we check client-side before writing.
-    if (room) {
-      const { data: clash } = await supabase.from('timetable_entries').select('id, course, grade, turma')
-        .eq('account_id', schoolCtx.accountId).eq('room', room).eq('day', ttEditingDay).eq('period', ttEditingPeriod);
-      const conflict = (clash || []).find(c => c.id !== (existing ? existing.id : null) && (c.course !== course || c.grade !== grade || c.turma !== turma));
-      if (conflict) { msg.className = 'msg err'; msg.textContent = t('msg_room_clash'); return; }
+    if (!cls) { msg.className = 'msg err'; msg.textContent = t('msg_no_classes_add_students'); return; }
+    if (!subject) { msg.className = 'msg err'; msg.textContent = t('msg_subject_required'); return; }
+    if (!PERIODS.includes(ttEditingPeriod) || !DAYS.includes(ttEditingDay)) {
+      msg.className = 'msg err'; msg.textContent = 'Invalid timetable slot.'; return;
     }
 
-    const payload = { account_id: schoolCtx.accountId, course, grade, turma, day: ttEditingDay, period: ttEditingPeriod, subject, teacher_id, room };
-    const { error } = existing
-      ? await supabase.from('timetable_entries').update(payload).eq('id', existing.id)
-      : await supabase.from('timetable_entries').insert(payload);
+    ttSaving = true;
+    const saveBtn = document.getElementById('tt-save');
+    saveBtn.disabled = true;
+    saveBtn.textContent = t('msg_creating');
+    try {
+      const noConflict = await checkTimetableConflicts();
+      if (!noConflict) return;
 
-    if (error) {
-      if (error.message.includes('unique_teacher_slot')) {
-        msg.className = 'msg err';
-        msg.textContent = t('msg_teacher_clash');
-      } else {
-        msg.className = 'msg err'; msg.textContent = error.message;
+      const payload = {
+        account_id: schoolCtx.accountId,
+        course: cls.course,
+        grade: cls.grade,
+        turma: cls.turma,
+        day: ttEditingDay,
+        period: ttEditingPeriod,
+        subject,
+        teacher_id,
+        room: room || null
+      };
+
+      // Recheck the room immediately before writing to reduce collisions from simultaneous edits.
+      if (room) {
+        const { data: roomEntries, error: roomError } = await supabase.from('timetable_entries').select('id, course, grade, turma')
+          .eq('account_id', schoolCtx.accountId).eq('room', room).eq('day', ttEditingDay).eq('period', ttEditingPeriod);
+        if (roomError) { msg.className = 'msg err'; msg.textContent = roomError.message; return; }
+        const roomClash = (roomEntries || []).find(item => item.id !== ttEditingEntryId);
+        if (roomClash) { msg.className = 'msg err'; msg.textContent = t('msg_room_clash'); ttConflictActive = true; return; }
       }
-      return;
+
+      const query = supabase.from('timetable_entries');
+      const result = ttEditingEntryId
+        ? await query.update(payload).eq('id', ttEditingEntryId).eq('account_id', schoolCtx.accountId)
+        : await query.insert(payload);
+      if (result.error) {
+        msg.className = 'msg err';
+        msg.textContent = result.error.message.includes('unique_teacher_slot') ? t('msg_teacher_clash') : result.error.message;
+        return;
+      }
+
+      document.getElementById('tt-modal-overlay').classList.add('hidden');
+      await renderTimetableGrid();
+    } finally {
+      ttSaving = false;
+      saveBtn.textContent = t('btn_save');
+      if (!document.getElementById('tt-modal-overlay').classList.contains('hidden')) {
+        saveBtn.disabled = ttConflictActive;
+        saveBtn.style.opacity = saveBtn.disabled ? '0.55' : '1';
+        saveBtn.style.cursor = saveBtn.disabled ? 'not-allowed' : 'pointer';
+      }
     }
-    document.getElementById('tt-modal-overlay').classList.add('hidden');
-    renderTimetableGrid();
   });
 
   document.getElementById('tt-clear').addEventListener('click', async () => {
-    const existing = ttEditingRoomMode
-      ? ttEntries.find(e => e.day === ttEditingDay)
-      : ttEntries.find(e => e.day === ttEditingDay && e.period === ttEditingPeriod);
-    if (existing) await supabase.from('timetable_entries').delete().eq('id', existing.id);
-    document.getElementById('tt-modal-overlay').classList.add('hidden');
-    renderTimetableGrid();
+    if (ttSaving) return;
+    const msg = document.getElementById('tt-msg');
+    if (!ttEditingEntryId) {
+      document.getElementById('tt-modal-overlay').classList.add('hidden');
+      return;
+    }
+    const clearBtn = document.getElementById('tt-clear');
+    clearBtn.disabled = true;
+    try {
+      const { error } = await supabase.from('timetable_entries').delete()
+        .eq('id', ttEditingEntryId).eq('account_id', schoolCtx.accountId);
+      if (error) { msg.className = 'msg err'; msg.textContent = error.message; return; }
+      document.getElementById('tt-modal-overlay').classList.add('hidden');
+      await renderTimetableGrid();
+    } finally {
+      clearBtn.disabled = false;
+    }
   });
 
   // ---------- DEBTS ----------
@@ -2250,7 +2412,7 @@
 
 <!-- ================= TIMETABLE CELL MODAL ================= -->
 <div id="tt-modal-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:60;display:flex;align-items:center;justify-content:center;">
-  <div style="width:300px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;">
+  <div style="width:min(440px,100%);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;">
     <div style="font-size:14px;font-weight:700;margin-bottom:14px;" id="tt-modal-title"></div>
     <div id="tt-turma-field-wrap" class="hidden">
       <label class="field-label" data-i18n="label_turma_class">Class</label>
