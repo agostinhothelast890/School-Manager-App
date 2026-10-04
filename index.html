@@ -167,6 +167,73 @@
   .lang-switch { position: fixed; top: 14px; right: 16px; z-index: 100; display: flex; gap: 2px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 3px; box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
   .lang-btn { border: none; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.03em; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
   .lang-btn.active { background: var(--gold); color: #1a1204; }
+
+  /* ---------- responsive layout: phone, tablet and desktop ---------- */
+  html, body { width:100%; min-height:100%; }
+  body { overflow-x:hidden; }
+  img, video, canvas, svg { max-width:100%; }
+  input, select, textarea, button { max-width:100%; }
+  .app, .main, .content, .view { min-width:0; }
+  .toolbar, .btn-row { flex-wrap:wrap; }
+  .toolbar > *, .tt-toolbar > * { min-width:0; }
+  .row { min-width:0; flex-wrap:wrap; }
+  .row-main { flex:1 1 180px; overflow-wrap:anywhere; }
+  .account-pill { min-width:0; flex-wrap:wrap; }
+  .content { overflow-x:hidden; }
+  .card { min-width:0; }
+  .table-wrap, .tt-table-wrap { max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  @media (max-width: 900px) {
+    .sidebar { width:180px; }
+    .topbar { padding:14px 18px; gap:12px; flex-wrap:wrap; }
+    .content { padding:18px; }
+    .kpi-row { flex-wrap:wrap; }
+    .kpi { flex:1 1 180px; }
+    .toolbar { flex-wrap:wrap; }
+    .toolbar > .input-inline { flex:1 1 220px !important; max-width:none !important; }
+  }
+  @media (max-width: 640px) {
+    .app { display:flex; flex-direction:column; min-height:100dvh; }
+    .sidebar { width:100%; max-width:none; border-right:0; border-bottom:1px solid var(--line); }
+    .sidebar-header { padding:10px 14px; }
+    .sidebar-header img { width:28px; height:28px; }
+    .nav { display:flex; flex-direction:row; flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden; gap:5px; padding:7px 8px; -webkit-overflow-scrolling:touch; }
+    .nav-item { flex:0 0 auto; white-space:nowrap; margin:0; padding:9px 11px; }
+    .sidebar-footer { display:none; }
+    .main { width:100%; min-width:0; }
+    .topbar { padding:13px 14px; align-items:flex-start; }
+    .topbar h1 { font-size:15px; }
+    .account-pill { width:100%; justify-content:space-between; font-size:11px; }
+    .content { padding:12px; }
+    .section-label { margin-bottom:10px; }
+    .toolbar { display:flex; flex-direction:column; gap:8px; width:100%; }
+    .toolbar > *, .toolbar > .input-inline { width:100%; max-width:none !important; flex:1 1 auto !important; }
+    .input-inline { font-size:16px; min-height:42px; }
+    .row { padding:12px; align-items:flex-start; }
+    .btn-row { width:100%; }
+    .btn-row .btn { flex:1 1 auto; }
+    .kpi-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+    .kpi { min-width:0; padding:12px; }
+    .kpi-value { font-size:21px; overflow-wrap:anywhere; }
+    .center-screen { padding:16px; min-height:100dvh; }
+    .card-narrow, #screen-onboarding .card-narrow { width:100% !important; max-width:420px; padding:26px 18px; }
+    .lang-switch { top:8px; right:8px; }
+    .tt-toolbar { display:flex; flex-direction:column; align-items:stretch; }
+    .tt-toolbar select, .tt-toolbar button { width:100%; min-width:0; max-width:none !important; }
+    .tt-grid-card { padding:8px; }
+    .tt-table { min-width:900px; }
+    #tt-modal-overlay, #tt-times-overlay { padding:8px; align-items:flex-start; }
+    #tt-modal-overlay > div, #tt-times-overlay > div { width:100% !important; max-width:100%; max-height:calc(100dvh - 16px); padding:15px !important; margin:auto 0; }
+    .tt-time-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .tt-time-label { grid-column:1/-1; }
+    .fee-row { padding:12px; }
+  }
+  @media (max-width: 380px) {
+    .content { padding:9px; }
+    .kpi-row { grid-template-columns:1fr; }
+    .sidebar-header .brand { font-size:12px; }
+    .nav-item { font-size:12px; padding:8px 9px; }
+  }
+
 </style>
 </head>
 <body>
@@ -399,12 +466,162 @@
   </div>
 </div>
 
+
+<!-- ================= STUDENT DETAIL PANEL ================= -->
+<div id="student-panel-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;display:flex;justify-content:flex-end;">
+  <div style="width:380px;background:var(--panel);border-left:1px solid var(--line);height:100%;padding:24px;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+      <div>
+        <div class="row-sub" id="sp-number"></div>
+        <div style="font-size:18px;font-weight:700;margin-top:2px;" id="sp-name"></div>
+      </div>
+      <button class="btn" id="sp-close" style="padding:5px 9px;">✕</button>
+    </div>
+    <div class="row-sub" id="sp-meta" style="margin-bottom:18px;"></div>
+
+    <div id="sp-debt-section" class="admin-only hidden">
+      <div class="section-label" data-i18n="section_debt">Debt</div>
+      <div id="sp-debt-content" style="margin-bottom:22px;"></div>
+    </div>
+
+    <div class="section-label" data-i18n="section_notes">Notes</div>
+    <div id="sp-notes" style="margin-bottom:14px;"></div>
+    <textarea id="sp-note-input" placeholder="Add a note…" data-i18n-placeholder="ph_add_note" rows="3" style="width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--text);font-size:13px;margin-bottom:8px;font-family:'Inter',sans-serif;"></textarea>
+    <button class="btn btn-gold-sm" id="sp-add-note" style="width:100%;justify-content:center;margin-bottom:22px;" data-i18n="btn_add_note">Add note</button>
+
+    <div class="section-label" data-i18n="section_grades">Grades</div>
+    <div id="sp-grades" style="margin-bottom:14px;"></div>
+    <div id="sp-grade-form" class="hidden">
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <select class="input-inline" id="sp-grade-subject"><option value="" data-i18n="opt_subject_placeholder">Subject…</option></select>
+        <select class="input-inline" id="sp-grade-term" style="max-width:90px;">
+          <option value="1st" data-i18n="term_1st">1st</option><option value="2nd" data-i18n="term_2nd">2nd</option><option value="3rd" data-i18n="term_3rd">3rd</option>
+        </select>
+        <input class="input-inline" id="sp-grade-value" placeholder="0-20" type="number" min="0" max="20" style="max-width:70px;" />
+      </div>
+      <button class="btn btn-gold-sm" id="sp-add-grade" style="width:100%;justify-content:center;" data-i18n="btn_add_grade">Add grade</button>
+    </div>
+    <div id="sp-grade-locked" class="empty-note hidden" data-i18n="msg_locked_not_teaching">You don't teach this student's class.</div>
+  </div>
+</div>
+
+<!-- ================= ADD/EDIT STUDENT MODAL ================= -->
+<div id="student-modal-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:60;display:flex;align-items:center;justify-content:center;">
+  <div style="width:340px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;">
+    <div style="font-size:15px;font-weight:700;margin-bottom:14px;" id="sm-title" data-i18n="modal_title_add_student">Add student</div>
+    <label class="field-label" data-i18n="label_student_number">Student number</label>
+    <input class="input-inline" id="sm-number" style="width:100%;margin-bottom:10px;" />
+    <label class="field-label" data-i18n="label_name">Name</label>
+    <input class="input-inline" id="sm-name" style="width:100%;margin-bottom:10px;" />
+    <div style="display:flex;gap:8px;">
+      <div style="flex:1;"><label class="field-label" data-i18n="label_course">Course</label>
+        <select class="input-inline" id="sm-course" style="width:100%;margin-bottom:10px;">
+          <option value="Informática">Informática</option>
+          <option value="Eletrónica e Telecomunicações">Eletrónica e Telecomunicações</option>
+        </select>
+      </div>
+      <div style="flex:1;"><label class="field-label" data-i18n="label_grade">Grade</label>
+        <select class="input-inline" id="sm-grade" style="width:100%;margin-bottom:10px;">
+          <option value="10ª">10ª</option><option value="11ª">11ª</option><option value="12ª">12ª</option><option value="13ª">13ª</option>
+        </select>
+      </div>
+      <div style="flex:1;"><label class="field-label" data-i18n="label_turma">Turma</label><input class="input-inline" id="sm-turma" style="width:100%;margin-bottom:10px;" /></div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <div style="flex:1;"><label class="field-label" data-i18n="label_room">Room</label>
+        <select class="input-inline" id="sm-room" style="width:100%;margin-bottom:14px;">
+          <option value="Sala 1">Sala 1</option><option value="Sala 2">Sala 2</option><option value="Sala 3">Sala 3</option>
+          <option value="Sala 4">Sala 4</option><option value="Sala 5">Sala 5</option><option value="Sala 6">Sala 6</option>
+        </select>
+      </div>
+      <div style="flex:1;"><label class="field-label" data-i18n="label_shift">Shift</label>
+        <select class="input-inline" id="sm-shift" style="width:100%;margin-bottom:14px;">
+          <option value="morning" data-i18n="shift_morning">Morning</option><option value="afternoon" data-i18n="shift_afternoon">Afternoon</option>
+        </select>
+      </div>
+    </div>
+    <div class="msg" id="sm-msg" style="margin-bottom:8px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-gold-sm" id="sm-save" style="flex:1;justify-content:center;" data-i18n="btn_save">Save</button>
+      <button class="btn" id="sm-cancel" style="flex:1;justify-content:center;" data-i18n="btn_cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ADD/EDIT TEACHER MODAL ================= -->
+<div id="teacher-modal-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:60;display:flex;align-items:center;justify-content:center;">
+  <div style="width:min(420px,calc(100vw - 28px));background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;">
+    <div style="font-size:15px;font-weight:700;margin-bottom:14px;" data-i18n="modal_title_teacher">Teacher</div>
+    <label class="field-label" data-i18n="label_name">Name</label>
+    <input class="input-inline" id="tm-name" style="width:100%;margin-bottom:10px;" />
+    <label class="field-label" data-i18n="label_subjects">Subjects</label>
+    <input class="input-inline" id="tm-subjects" style="width:100%;margin-bottom:10px;" />
+    <label class="field-label" data-i18n="label_phone">Phone</label>
+    <input class="input-inline" id="tm-phone" style="width:100%;margin-bottom:14px;" />
+    <div class="msg" id="tm-msg" style="margin-bottom:8px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-gold-sm" id="tm-save" style="flex:1;justify-content:center;" data-i18n="btn_save">Save</button>
+      <button class="btn" id="tm-cancel" style="flex:1;justify-content:center;" data-i18n="btn_cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= TIMETABLE LESSON MODAL ================= -->
+<div id="tt-modal-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:60;display:flex;align-items:center;justify-content:center;">
+  <div style="width:min(470px,100%);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;">
+    <div style="font-size:14px;font-weight:700;margin-bottom:14px;" id="tt-modal-title"></div>
+    <label class="field-label" data-i18n="label_subject">Subject</label>
+    <input class="input-inline" id="tt-subject" style="width:100%;margin-bottom:10px;" />
+    <label class="field-label" data-i18n="label_teacher">Teacher</label>
+    <select class="input-inline" id="tt-teacher" style="width:100%;margin-bottom:10px;"></select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div><label class="field-label" data-i18n="label_start">Start</label><input class="input-inline" id="tt-start-time" type="time" style="width:100%;margin-bottom:10px;" /></div>
+      <div><label class="field-label" data-i18n="label_end">End</label><input class="input-inline" id="tt-end-time" type="time" style="width:100%;margin-bottom:10px;" /></div>
+    </div>
+    <label class="field-label" data-i18n="label_room">Room</label>
+    <input class="input-inline" id="tt-room" style="width:100%;margin-bottom:14px;" readonly />
+    <div class="msg" id="tt-msg" style="margin-bottom:8px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-gold-sm" id="tt-save" style="flex:1;justify-content:center;" data-i18n="btn_save">Save</button>
+      <button class="btn btn-danger-sm" id="tt-clear" style="flex:1;justify-content:center;" data-i18n="btn_clear">Clear</button>
+      <button class="btn" id="tt-cancel" style="flex:1;justify-content:center;" data-i18n="btn_cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= TIMETABLE TIMES MODAL ================= -->
+<div id="tt-times-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:61;display:flex;align-items:center;justify-content:center;">
+  <div style="width:min(560px,100%);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;">
+    <div style="font-size:14px;font-weight:700;margin-bottom:6px;" data-i18n="btn_config_times">Configure times</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;" data-i18n="msg_times_help">Set the normal start/end time for each tempo. Individual lessons can still be edited later.</div>
+    <div id="tt-times-list"></div>
+    <div class="msg" id="tt-times-msg" style="margin-bottom:8px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-gold-sm" id="tt-times-save" style="flex:1;justify-content:center;" data-i18n="btn_save">Save</button>
+      <button class="btn" id="tt-times-cancel" style="flex:1;justify-content:center;" data-i18n="btn_cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
 <script type="module">
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
   const SUPABASE_URL = 'https://jmpyzwsffbmbjxxfqecg.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_hyQ83RqiogAVPl6-Wyc07g_RP8lzDs-';
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Shared state is initialized before auth callbacks or navigation can trigger loaders.
+  let ttTurmas = [];
+  let ttEntries = [];
+  let ttSelectedTempoCount = 8;
+  let ttEditingDay = null;
+  let ttEditingTempo = null;
+  let ttEditingEntryId = null;
+  let ttSaving = false;
+  let ttConflictCheckToken = 0;
+  let ttConflictActive = false;
+  let folhaTotals = {};
 
   /* ================= I18N ================= */
   const TRANSLATIONS = {
@@ -1823,15 +2040,6 @@
     ['07:30', '09:45'], ['09:00', '10:50'], ['12:40', '13:25'], ['13:25', '14:10'],
     ['14:10', '15:00'], ['15:15', '16:00'], ['16:00', '16:45'], ['16:45', '17:30']
   ];
-  let ttTurmas = [];
-  let ttEntries = [];
-  let ttSelectedTempoCount = 8;
-  let ttEditingDay = null;
-  let ttEditingTempo = null;
-  let ttEditingEntryId = null;
-  let ttSaving = false;
-  let ttConflictCheckToken = 0;
-  let ttConflictActive = false;
 
   function ttClassKey(entry) {
     return `${entry.course}|${entry.grade}|${entry.turma}`;
@@ -1946,13 +2154,11 @@
 
   async function loadTimetable() {
     const gridEl = document.getElementById('tt-grid');
-    gridEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
+    gridEl.innerHTML = `<div class="empty-note">${ttEsc(t('msg_loading'))}</div>`;
+    try {
     const { data: students, error: studentError } = await supabase
       .from('students').select('course, grade, turma, shift, room').eq('account_id', schoolCtx.accountId);
-    if (studentError) {
-      gridEl.innerHTML = `<div class="empty-note">${ttEsc(t('msg_error_prefix'))} ${ttEsc(studentError.message)}</div>`;
-      return;
-    }
+    if (studentError) throw studentError;
 
     const seen = new Map();
     ttTurmas = [];
@@ -2001,6 +2207,10 @@
     allTeachers = teachers || [];
     updateTtModeUI();
     await renderTimetableGrid();
+    } catch (error) {
+      console.error('Bravo: failed to load timetable:', error);
+      gridEl.innerHTML = `<div class="empty-note">${ttEsc(t('msg_error_prefix'))} ${ttEsc(error?.message || String(error))}</div>`;
+    }
   }
 
   document.getElementById('tt-turma-select').addEventListener('change', async () => {
@@ -2323,18 +2533,26 @@
   }
 
   // ---------- TEST PAPERS ----------
-  let folhaTotals = {};
 
   async function loadFolhas() {
     const listEl = document.getElementById('folhas-list');
     listEl.innerHTML = `<div class="empty-note">${t('msg_loading')}</div>`;
-    const { data: events, error } = await supabase.from('folha_events').select('student_id, delta').eq('account_id', schoolCtx.accountId);
-    if (error) { listEl.innerHTML = `<div class="empty-note">${t('msg_error_prefix')} ${error.message}</div>`; return; }
-    folhaTotals = {};
-    (events || []).forEach(e => { folhaTotals[e.student_id] = (folhaTotals[e.student_id] || 0) + Number(e.delta); });
+    try {
+      const { data: events, error } = await supabase.from('folha_events').select('student_id, delta').eq('account_id', schoolCtx.accountId);
+      if (error) throw error;
+      folhaTotals = {};
+      (events || []).forEach(e => { folhaTotals[e.student_id] = (folhaTotals[e.student_id] || 0) + Number(e.delta); });
 
-    if (!allStudents.length) { const { data } = await supabase.from('students').select('*').eq('account_id', schoolCtx.accountId); allStudents = data || []; }
-    renderFolhas();
+      if (!Array.isArray(allStudents) || !allStudents.length) {
+        const { data, error: studentsError } = await supabase.from('students').select('*').eq('account_id', schoolCtx.accountId);
+        if (studentsError) throw studentsError;
+        allStudents = data || [];
+      }
+      renderFolhas();
+    } catch (error) {
+      console.error('Bravo: failed to load test-paper balances:', error);
+      listEl.innerHTML = `<div class="empty-note">${ttEsc(t('msg_error_prefix'))} ${ttEsc(error?.message || String(error))}</div>`;
+    }
   }
 
   function renderFolhas() {
@@ -2469,141 +2687,5 @@
 
   boot();
 </script>
-<!-- ================= STUDENT DETAIL PANEL ================= -->
-<div id="student-panel-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;display:flex;justify-content:flex-end;">
-  <div style="width:380px;background:var(--panel);border-left:1px solid var(--line);height:100%;padding:24px;overflow-y:auto;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
-      <div>
-        <div class="row-sub" id="sp-number"></div>
-        <div style="font-size:18px;font-weight:700;margin-top:2px;" id="sp-name"></div>
-      </div>
-      <button class="btn" id="sp-close" style="padding:5px 9px;">✕</button>
-    </div>
-    <div class="row-sub" id="sp-meta" style="margin-bottom:18px;"></div>
-
-    <div id="sp-debt-section" class="admin-only hidden">
-      <div class="section-label" data-i18n="section_debt">Debt</div>
-      <div id="sp-debt-content" style="margin-bottom:22px;"></div>
-    </div>
-
-    <div class="section-label" data-i18n="section_notes">Notes</div>
-    <div id="sp-notes" style="margin-bottom:14px;"></div>
-    <textarea id="sp-note-input" placeholder="Add a note…" data-i18n-placeholder="ph_add_note" rows="3" style="width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--text);font-size:13px;margin-bottom:8px;font-family:'Inter',sans-serif;"></textarea>
-    <button class="btn btn-gold-sm" id="sp-add-note" style="width:100%;justify-content:center;margin-bottom:22px;" data-i18n="btn_add_note">Add note</button>
-
-    <div class="section-label" data-i18n="section_grades">Grades</div>
-    <div id="sp-grades" style="margin-bottom:14px;"></div>
-    <div id="sp-grade-form" class="hidden">
-      <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <select class="input-inline" id="sp-grade-subject"><option value="" data-i18n="opt_subject_placeholder">Subject…</option></select>
-        <select class="input-inline" id="sp-grade-term" style="max-width:90px;">
-          <option value="1st" data-i18n="term_1st">1st</option><option value="2nd" data-i18n="term_2nd">2nd</option><option value="3rd" data-i18n="term_3rd">3rd</option>
-        </select>
-        <input class="input-inline" id="sp-grade-value" placeholder="0-20" type="number" min="0" max="20" style="max-width:70px;" />
-      </div>
-      <button class="btn btn-gold-sm" id="sp-add-grade" style="width:100%;justify-content:center;" data-i18n="btn_add_grade">Add grade</button>
-    </div>
-    <div id="sp-grade-locked" class="empty-note hidden" data-i18n="msg_locked_not_teaching">You don't teach this student's class.</div>
-  </div>
-</div>
-
-<!-- ================= ADD/EDIT STUDENT MODAL ================= -->
-<div id="student-modal-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:60;display:flex;align-items:center;justify-content:center;">
-  <div style="width:340px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;">
-    <div style="font-size:15px;font-weight:700;margin-bottom:14px;" id="sm-title" data-i18n="modal_title_add_student">Add student</div>
-    <label class="field-label" data-i18n="label_student_number">Student number</label>
-    <input class="input-inline" id="sm-number" style="width:100%;margin-bottom:10px;" />
-    <label class="field-label" data-i18n="label_name">Name</label>
-    <input class="input-inline" id="sm-name" style="width:100%;margin-bottom:10px;" />
-    <div style="display:flex;gap:8px;">
-      <div style="flex:1;"><label class="field-label" data-i18n="label_course">Course</label>
-        <select class="input-inline" id="sm-course" style="width:100%;margin-bottom:10px;">
-          <option value="Informática">Informática</option>
-          <option value="Eletrónica e Telecomunicações">Eletrónica e Telecomunicações</option>
-        </select>
-      </div>
-      <div style="flex:1;"><label class="field-label" data-i18n="label_grade">Grade</label>
-        <select class="input-inline" id="sm-grade" style="width:100%;margin-bottom:10px;">
-          <option value="10ª">10ª</option><option value="11ª">11ª</option><option value="12ª">12ª</option><option value="13ª">13ª</option>
-        </select>
-      </div>
-      <div style="flex:1;"><label class="field-label" data-i18n="label_turma">Turma</label><input class="input-inline" id="sm-turma" style="width:100%;margin-bottom:10px;" /></div>
-    </div>
-    <div style="display:flex;gap:8px;">
-      <div style="flex:1;"><label class="field-label" data-i18n="label_room">Room</label>
-        <select class="input-inline" id="sm-room" style="width:100%;margin-bottom:14px;">
-          <option value="Sala 1">Sala 1</option><option value="Sala 2">Sala 2</option><option value="Sala 3">Sala 3</option>
-          <option value="Sala 4">Sala 4</option><option value="Sala 5">Sala 5</option><option value="Sala 6">Sala 6</option>
-        </select>
-      </div>
-      <div style="flex:1;"><label class="field-label" data-i18n="label_shift">Shift</label>
-        <select class="input-inline" id="sm-shift" style="width:100%;margin-bottom:14px;">
-          <option value="morning" data-i18n="shift_morning">Morning</option><option value="afternoon" data-i18n="shift_afternoon">Afternoon</option>
-        </select>
-      </div>
-    </div>
-    <div class="msg" id="sm-msg" style="margin-bottom:8px;"></div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn btn-gold-sm" id="sm-save" style="flex:1;justify-content:center;" data-i18n="btn_save">Save</button>
-      <button class="btn" id="sm-cancel" style="flex:1;justify-content:center;" data-i18n="btn_cancel">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- ================= ADD/EDIT TEACHER MODAL ================= -->
-<div id="teacher-modal-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:60;display:flex;align-items:center;justify-content:center;">
-  <div style="width:320px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;">
-    <div style="font-size:15px;font-weight:700;margin-bottom:14px;" data-i18n="modal_title_teacher">Teacher</div>
-    <label class="field-label" data-i18n="label_name">Name</label>
-    <input class="input-inline" id="tm-name" style="width:100%;margin-bottom:10px;" />
-    <label class="field-label" data-i18n="label_subjects">Subjects</label>
-    <input class="input-inline" id="tm-subjects" style="width:100%;margin-bottom:10px;" />
-    <label class="field-label" data-i18n="label_phone">Phone</label>
-    <input cla<!-- ================= TIMETABLE LESSON MODAL ================= -->
-<div id="tt-modal-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:60;display:flex;align-items:center;justify-content:center;">
-  <div style="width:min(470px,100%);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;">
-    <div style="font-size:14px;font-weight:700;margin-bottom:14px;" id="tt-modal-title"></div>
-    <label class="field-label" data-i18n="label_subject">Subject</label>
-    <input class="input-inline" id="tt-subject" style="width:100%;margin-bottom:10px;" />
-    <label class="field-label" data-i18n="label_teacher">Teacher</label>
-    <select class="input-inline" id="tt-teacher" style="width:100%;margin-bottom:10px;"></select>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      <div><label class="field-label" data-i18n="label_start">Start</label><input class="input-inline" id="tt-start-time" type="time" style="width:100%;margin-bottom:10px;" /></div>
-      <div><label class="field-label" data-i18n="label_end">End</label><input class="input-inline" id="tt-end-time" type="time" style="width:100%;margin-bottom:10px;" /></div>
-    </div>
-    <label class="field-label" data-i18n="label_room">Room</label>
-    <input class="input-inline" id="tt-room" style="width:100%;margin-bottom:14px;" readonly />
-    <div class="msg" id="tt-msg" style="margin-bottom:8px;"></div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn btn-gold-sm" id="tt-save" style="flex:1;justify-content:center;" data-i18n="btn_save">Save</button>
-      <button class="btn btn-danger-sm" id="tt-clear" style="flex:1;justify-content:center;" data-i18n="btn_clear">Clear</button>
-      <button class="btn" id="tt-cancel" style="flex:1;justify-content:center;" data-i18n="btn_cancel">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- ================= TIMETABLE TIMES MODAL ================= -->
-<div id="tt-times-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:61;display:flex;align-items:center;justify-content:center;">
-  <div style="width:min(560px,100%);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;">
-    <div style="font-size:14px;font-weight:700;margin-bottom:6px;" data-i18n="btn_config_times">Configure times</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;" data-i18n="msg_times_help">Set the normal start/end time for each tempo. Individual lessons can still be edited later.</div>
-    <div id="tt-times-list"></div>
-    <div class="msg" id="tt-times-msg" style="margin-bottom:8px;"></div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn btn-gold-sm" id="tt-times-save" style="flex:1;justify-content:center;" data-i18n="btn_save">Save</button>
-      <button class="btn" id="tt-times-cancel" style="flex:1;justify-content:center;" data-i18n="btn_cancel">Cancel</button>
-    </div>
-  </div>
-</div>
-
-x;"></div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn btn-gold-sm" id="tt-save" style="flex:1;justify-content:center;" data-i18n="btn_save">Save</button>
-      <button class="btn btn-danger-sm" id="tt-clear" style="flex:1;justify-content:center;" data-i18n="btn_clear">Clear</button>
-      <button class="btn" id="tt-cancel" style="flex:1;justify-content:center;" data-i18n="btn_cancel">Cancel</button>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
